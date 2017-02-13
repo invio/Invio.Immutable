@@ -21,7 +21,7 @@ namespace Invio.Immutable {
             // Arrange
 
             var fake = this.NextFake();
-            var defaultValue = fake.StringProperty;
+            var originalValue = fake.StringProperty;
 
             // Act
 
@@ -29,7 +29,7 @@ namespace Invio.Immutable {
 
             // Assert
 
-            Assert.Equal(defaultValue, fake.StringProperty);
+            Assert.Equal(originalValue, fake.StringProperty);
             Assert.Equal(newStringValue, updated.StringProperty);
         }
 
@@ -43,7 +43,7 @@ namespace Invio.Immutable {
             // Arrange
 
             var fake = this.NextFake();
-            var defaultValue = fake.ValueProperty;
+            var originalValue = fake.ValueProperty;
 
             // Act
 
@@ -51,8 +51,41 @@ namespace Invio.Immutable {
 
             // Assert
 
-            Assert.Equal(defaultValue, fake.ValueProperty);
+            Assert.Equal(originalValue, fake.ValueProperty);
             Assert.Equal(newValue, updated.ValueProperty);
+        }
+
+        [Fact]
+        public void SetReferenceProperty_Null() {
+
+            // Arrange
+
+            var fake = this.NextFake();
+
+            // Act
+
+            var updated = fake.SetReferenceProperty(null);
+
+            // Assert
+
+            Assert.Null(fake.ReferenceProperty);
+        }
+
+        [Fact]
+        public void SetReferenceProperty_NonNull() {
+
+            // Arrange
+
+            var fake = this.NextFake();
+            var value = new object();
+
+            // Act
+
+            var updated = fake.SetReferenceProperty(value);
+
+            // Assert
+
+            Assert.Equal(value, updated.ReferenceProperty);
         }
 
         [Fact]
@@ -167,7 +200,7 @@ namespace Invio.Immutable {
         }
 
         [Fact]
-        public void Inequality_SetRefernceProperty_Null() {
+        public void Inequality_SetReferenceProperty_Null() {
 
             // Arrange
 

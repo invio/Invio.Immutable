@@ -70,11 +70,14 @@ namespace Invio.Immutable {
             }
 
             foreach (var getter in getters) {
-                if (Object.ReferenceEquals(getter(this), null)) {
-                    if (!Object.ReferenceEquals(getter(that), null)) {
+                var thisValue = getter(this);
+                var thatValue = getter(that);
+
+                if (Object.ReferenceEquals(thisValue, null)) {
+                    if (!Object.ReferenceEquals(thatValue, null)) {
                         return false;
                     }
-                } else if (!getter(this).Equals(getter(that))) {
+                } else if (!thisValue.Equals(thatValue)) {
                     return false;
                 }
             }
