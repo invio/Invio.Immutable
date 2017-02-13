@@ -5,26 +5,32 @@ namespace Invio.Immutable {
 
     public class SimpleImmutableTests {
 
+        private Random random { get; }
+
+        public SimpleImmutableTests() {
+            this.random = new Random();
+        }
+
         [Theory]
         [InlineData(null)]
         [InlineData("")]
         [InlineData(" ")]
         [InlineData("foo")]
-        public void SetReferenceProperty(String newReferenceValue) {
+        public void SetStringProperty(String newStringValue) {
 
             // Arrange
 
-            var fake = new SimpleImmutableFake();
-            var defaultValue = fake.ReferenceProperty;
+            var fake = this.NextFake();
+            var defaultValue = fake.StringProperty;
 
             // Act
 
-            var updated = fake.SetReferenceProperty(newReferenceValue);
+            var updated = fake.SetStringProperty(newStringValue);
 
             // Assert
 
-            Assert.Equal(defaultValue, fake.ReferenceProperty);
-            Assert.Equal(newReferenceValue, updated.ReferenceProperty);
+            Assert.Equal(defaultValue, fake.StringProperty);
+            Assert.Equal(newStringValue, updated.StringProperty);
         }
 
         [Theory]
@@ -36,7 +42,7 @@ namespace Invio.Immutable {
 
             // Arrange
 
-            var fake = new SimpleImmutableFake();
+            var fake = this.NextFake();
             var defaultValue = fake.ValueProperty;
 
             // Act
@@ -54,7 +60,7 @@ namespace Invio.Immutable {
 
             // Arrange
 
-            var fake = new SimpleImmutableFake();
+            var fake = this.NextFake();
 
             // Act
 
@@ -74,7 +80,7 @@ namespace Invio.Immutable {
 
             // Arrange
 
-            var fake = new SimpleImmutableFake();
+            var fake = this.NextFake();
 
             // Act
 
@@ -83,8 +89,7 @@ namespace Invio.Immutable {
 
             // Assert
 
-            Assert.Equal(left.GetHashCode(), right.GetHashCode());
-            Assert.Equal(left, right);
+            AssertFakesEqual(left, right);
         }
 
         [Theory]
@@ -92,33 +97,145 @@ namespace Invio.Immutable {
         [InlineData("")]
         [InlineData(" ")]
         [InlineData("foo")]
-        public void Equality_SetReferenceProperty(String referenceValue) {
+        public void Equality_SetStringProperty(String stringValue) {
 
             // Arrange
 
-            var fake = new SimpleImmutableFake();
+            var fake = this.NextFake();
 
             // Act
 
-            var left = fake.SetReferenceProperty(referenceValue);
-            var right = fake.SetReferenceProperty(referenceValue);
+            var left = fake.SetStringProperty(stringValue);
+            var right = fake.SetStringProperty(stringValue);
 
             // Assert
 
-            Assert.Equal(left.GetHashCode(), right.GetHashCode());
+            AssertFakesEqual(left, right);
+        }
+
+        [Fact]
+        public void Equality_SetReferenceProperty_NonNull() {
+
+            // Arrange
+
+            var fake = this.NextFake();
+            var value = new object();
+
+            // Act
+
+            var left = fake.SetReferenceProperty(value);
+            var right = fake.SetReferenceProperty(value);
+
+            // Assert
+
+            AssertFakesEqual(left, right);
+        }
+
+        [Fact]
+        public void Equality_SetReferenceProperty_Null() {
+
+            // Arrange
+
+            var fake = this.NextFake();
+            object value = null;
+
+            // Act
+
+            var left = fake.SetReferenceProperty(value);
+            var right = fake.SetReferenceProperty(value);
+
+            // Assert
+
+            AssertFakesEqual(left, right);
+        }
+
+        [Fact]
+        public void Inequality_SetReferenceProperty_NonNull() {
+
+            // Arrange
+
+            var fake = this.NextFake();
+
+            // Act
+
+            var left = fake.SetReferenceProperty(new object());
+            var right = fake.SetReferenceProperty(new object());
+
+            // Assert
+
+            AssertFakesNotEqual(left, right);
+        }
+
+        [Fact]
+        public void Inequality_SetRefernceProperty_Null() {
+
+            // Arrange
+
+            var fake = this.NextFake();
+
+            // Act
+
+            var left = fake.SetReferenceProperty(new object());
+            var right = fake.SetReferenceProperty(null);
+
+            // Assert
+
+            AssertFakesNotEqual(left, right);
+        }
+
+        [Fact]
+        public void Equality_SameImmutableObjectReference() {
+
+            // Assert
+
+            var fake = this.NextFake();
+
+            // Assert
+
+            AssertFakesEqual(fake, fake);
+        }
+
+        private static void AssertFakesEqual(
+            SimpleImmutableFake left,
+            SimpleImmutableFake right) {
+
             Assert.Equal(left, right);
+            Assert.Equal((Object)left, (Object)right);
+
+            if (left != null && right != null) {
+                Assert.Equal(left.GetHashCode(), right.GetHashCode());
+            }
+        }
+
+        private static void AssertFakesNotEqual(
+            SimpleImmutableFake left,
+            SimpleImmutableFake right) {
+
+            Assert.NotEqual(left, right);
+            Assert.NotEqual((Object)left, (Object)right);
+        }
+
+        private SimpleImmutableFake NextFake() {
+            return new SimpleImmutableFake(
+                this.random.Next(),
+                Guid.NewGuid().ToString("N"),
+                this.random.Next(0, 1) == 1 ? new object() : null
+            );
         }
 
         private class SimpleImmutableFake : ImmutableBase<SimpleImmutableFake> {
 
             public int ValueProperty { get; }
-            public String ReferenceProperty { get; }
+            public String StringProperty { get; }
+            public Object ReferenceProperty { get; }
 
             public SimpleImmutableFake(
-                int valueProperty = default(int),
-                String referenceProperty = default(String)) {
+                int valueProperty,
+                String stringProperty,
+                Object referenceProperty) {
 
                 this.ValueProperty = valueProperty;
+                this.StringProperty = stringProperty;
                 this.ReferenceProperty = referenceProperty;
             }
 
@@ -126,7 +243,11 @@ namespace Invio.Immutable {
                 return this.SetPropertyValueImpl(nameof(ValueProperty), valueProperty);
             }
 
-            public SimpleImmutableFake SetReferenceProperty(String referenceProperty) {
+            public SimpleImmutableFake SetStringProperty(String stringProperty) {
+                return this.SetPropertyValueImpl(nameof(StringProperty), stringProperty);
+            }
+
+            public SimpleImmutableFake SetReferenceProperty(Object referenceProperty) {
                 return this.SetPropertyValueImpl(nameof(ReferenceProperty), referenceProperty);
             }
 
