@@ -201,6 +201,8 @@ namespace Invio.Immutable {
 
             Assert.Equal(left, right);
             Assert.Equal((Object)left, (Object)right);
+            Assert.Equal(right, left);
+            Assert.Equal((Object)right, (Object)left);
 
             if (left != null && right != null) {
                 Assert.Equal(left.GetHashCode(), right.GetHashCode());
