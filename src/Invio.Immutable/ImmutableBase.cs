@@ -32,24 +32,56 @@ namespace Invio.Immutable {
 
             getters =
                 properties
-                    .Select(p => p.CreateGetter())
+                    .Select(property => property.CreateGetter())
                     .ToImmutableArray();
         }
 
         protected TImmutable SetPropertyValueImpl(String propertyName, object value) {
+            if (propertyName == null) {
+                throw new ArgumentNullException(nameof(propertyName));
+            }
+
+            var isPropertyFound = false;
             var values = new object[properties.Length];
 
             for (var index = 0; index < values.Length; index++) {
                 var property = properties[index];
 
                 if (property.Name.Equals(propertyName)) {
+                    if (!IsAssignable(property.PropertyType, value)) {
+                        var formattedValue = value?.ToString() ?? "null";
+
+                        throw new ArgumentException(
+                            $"Unable to assign the value ({formattedValue}) " +
+                            $"to the '{propertyName}' property.",
+                            nameof(value)
+                        );
+                    }
+
+                    isPropertyFound = true;
                     values[index] = value;
                 } else {
                     values[index] = getters[index](this);
                 }
             }
 
+            if (!isPropertyFound) {
+                throw new ArgumentException(
+                    $"The '{propertyName}' property was not found.",
+                    nameof(propertyName)
+                );
+            }
+
             return createImmutable(values);
+        }
+
+        private static bool IsAssignable(Type type, object value) {
+            if (value == null) {
+                return (!type.GetTypeInfo().IsValueType)
+                    || (Nullable.GetUnderlyingType(type) != null);
+            }
+
+            return type.IsAssignableFrom(value.GetType());
         }
 
         public override int GetHashCode() {
