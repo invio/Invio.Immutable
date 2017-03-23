@@ -3,12 +3,88 @@ using Xunit;
 
 namespace Invio.Immutable {
 
-    public class SetPropertyValueImplTests {
+    public class PropertyValueImplTests {
 
         private Random random { get; }
 
-        public SetPropertyValueImplTests() {
+        public PropertyValueImplTests() {
             this.random = new Random();
+        }
+
+        [Fact]
+        public void GetPropertyValueImpl_NullPropertyName() {
+
+            // Arrange
+
+            var fake = this.NextFake();
+
+            // Act
+
+            var exception = Record.Exception(
+                () => fake.GetPropertyValue(null)
+            );
+
+            // Assert
+
+            Assert.IsType<ArgumentNullException>(exception);
+        }
+
+        [Fact]
+        public void GetPropertyValueImpl_NonExistentProperty() {
+
+            // Arrange
+
+            var fake = this.NextFake();
+            const string propertyName = "ThisPropertyDoesNotExist";
+
+            // Act
+
+            var exception = Record.Exception(
+                () => fake.GetPropertyValue(propertyName)
+            );
+
+            // Assert
+
+            Assert.IsType<ArgumentException>(exception);
+
+            Assert.Equal(
+                $"The '{propertyName}' property was not found." +
+                Environment.NewLine + "Parameter name: propertyName",
+                exception.Message
+            );
+        }
+
+        [Fact]
+        public void GetPropertyValueImpl_NullValue() {
+
+            // Arrange
+
+            var fake = this.NextFake().SetStringProperty(null);
+
+            // Act
+
+            var value = fake.GetPropertyValue(nameof(Fake.StringProperty));
+
+            // Assert
+
+            Assert.Null(value);
+        }
+
+        [Fact]
+        public void GetPropertyValueImpl_NonNullValue() {
+
+            // Arrange
+
+            const int number = 42;
+            var fake = this.NextFake().SetNumber(number);
+
+            // Act
+
+            var value = fake.GetPropertyValue(nameof(Fake.Number));
+
+            // Assert
+
+            Assert.Equal(number, value);
         }
 
         [Fact]
@@ -60,7 +136,7 @@ namespace Invio.Immutable {
             // Arrange
 
             var fake = this.NextFake();
-            var propertyName = nameof(ExposedSettersFake.Number);
+            var propertyName = nameof(Fake.Number);
 
             // Act
 
@@ -85,7 +161,7 @@ namespace Invio.Immutable {
             // Arrange
 
             var fake = this.NextFake();
-            var propertyName = nameof(ExposedSettersFake.Number);
+            var propertyName = nameof(Fake.Number);
             const string value = "foo";
 
             // Act
@@ -111,7 +187,7 @@ namespace Invio.Immutable {
             // Arrange
 
             var fake = this.NextFake();
-            var propertyName = nameof(ExposedSettersFake.NullableDateTime);
+            var propertyName = nameof(Fake.NullableDateTime);
 
             // Act
 
@@ -122,8 +198,8 @@ namespace Invio.Immutable {
             Assert.Null(updated.NullableDateTime);
         }
 
-        private ExposedSettersFake NextFake() {
-            return new ExposedSettersFake(
+        private Fake NextFake() {
+            return new Fake(
                 this.random.Next(),
                 Guid.NewGuid().ToString("N"),
                 this.random.Next(2) == 0
@@ -132,13 +208,13 @@ namespace Invio.Immutable {
             );
         }
 
-        private class ExposedSettersFake : ImmutableBase<ExposedSettersFake> {
+        private class Fake : ImmutableBase<Fake> {
 
             public int Number { get; }
             public String StringProperty { get; }
             public DateTime? NullableDateTime { get; }
 
-            public ExposedSettersFake(
+            public Fake(
                 int number,
                 String stringProperty,
                 DateTime? nullableDateTime) {
@@ -148,8 +224,24 @@ namespace Invio.Immutable {
                 this.NullableDateTime = nullableDateTime;
             }
 
-            public ExposedSettersFake SetPropertyValue(String propertyName, object value) {
+            public object GetPropertyValue(String propertyName) {
+                return this.GetPropertyValueImpl(propertyName);
+            }
+
+            public Fake SetPropertyValue(String propertyName, object value) {
                 return this.SetPropertyValueImpl(propertyName, value);
+            }
+
+            public Fake SetNumber(int number) {
+                return this.SetPropertyValueImpl(nameof(Number), number);
+            }
+
+            public Fake SetStringProperty(string stringProperty) {
+                return this.SetPropertyValueImpl(nameof(StringProperty), stringProperty);
+            }
+
+            public Fake SetNullableDateTime(DateTime? nullable) {
+                return this.SetPropertyValueImpl(nameof(NullableDateTime), nullable);
             }
 
         }
