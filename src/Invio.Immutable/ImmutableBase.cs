@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -16,6 +17,8 @@ namespace Invio.Immutable {
         private static ImmutableArray<PropertyInfo> properties { get; }
         private static ImmutableArray<Func<Object, Object>> getters { get; }
         private static ImmutableDictionary<String, Func<Object, Object>> gettersByName { get; }
+        private static ImmutableArray<Func<Object, Object>> getHashCodeValues { get; }
+        private static ImmutableArray<Func<Object, Object, bool>> areEqualFuncs { get; }
 
         static ImmutableBase() {
             const BindingFlags flags =
@@ -40,9 +43,38 @@ namespace Invio.Immutable {
             gettersByName =
                 properties.ToImmutableDictionary(
                     property => property.Name,
-                    property => property.CreateGetter(),
-                    StringComparer.OrdinalIgnoreCase
+                    property => property.CreateGetter()
                 );
+
+            var getHashCodeValuesBuilder = ImmutableArray.CreateBuilder<Func<Object, Object>>();
+            var areEqualFuncsBuilder = ImmutableArray.CreateBuilder<Func<Object, Object, bool>>();
+
+            foreach (var property in properties) {
+                var type = property.PropertyType;
+                var getter = gettersByName[property.Name];
+
+                Func<object, object, bool> areEqual;
+                Func<object, object> getHashCodeValue;
+
+                if (type.IsImplementingOpenGenericInterface(typeof(ISet<>))) {
+                    areEqual = type.CreateSetEqualsFunc();
+                    getHashCodeValue =
+                        (instance) => HashCode.FromSet((IEnumerable)getter(instance));
+                } else if (type.GetInterfaces().Contains(typeof(IEnumerable))) {
+                    areEqual = type.CreateEnumerableEqualsFunc();
+                    getHashCodeValue =
+                        (instance) => HashCode.FromList((IEnumerable)getter(instance));
+                } else {
+                    areEqual = (left, right) => left.Equals(right);
+                    getHashCodeValue = getter;
+                }
+
+                getHashCodeValuesBuilder.Add(getHashCodeValue);
+                areEqualFuncsBuilder.Add(areEqual);
+            }
+
+            getHashCodeValues = getHashCodeValuesBuilder.ToImmutable();
+            areEqualFuncs = areEqualFuncsBuilder.ToImmutable();
         }
 
         protected object GetPropertyValueImpl(String propertyName) {
@@ -111,7 +143,7 @@ namespace Invio.Immutable {
         }
 
         public override int GetHashCode() {
-            return HashCode.From(getters.Select(getter => getter(this)));
+            return HashCode.From(getHashCodeValues.Select(getter => getter(this)));
         }
 
         public override bool Equals(Object that) {
@@ -127,15 +159,16 @@ namespace Invio.Immutable {
                 return true;
             }
 
-            foreach (var getter in getters) {
-                var thisValue = getter(this);
-                var thatValue = getter(that);
+            for (var index = 0; index < getters.Length; index++) {
+                var thisValue = getters[index](this);
+                var thatValue = getters[index](that);
+                var areEqual = areEqualFuncs[index];
 
                 if (Object.ReferenceEquals(thisValue, null)) {
                     if (!Object.ReferenceEquals(thatValue, null)) {
                         return false;
                     }
-                } else if (!thisValue.Equals(thatValue)) {
+                } else if (!areEqual(thisValue, thatValue)) {
                     return false;
                 }
             }
