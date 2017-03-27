@@ -60,7 +60,8 @@ namespace Invio.Immutable {
                     areEqual = type.CreateSetEqualsFunc();
                     getHashCodeValue =
                         (instance) => HashCode.FromSet((IEnumerable)getter(instance));
-                } else if (type.GetInterfaces().Contains(typeof(IEnumerable))) {
+                } else if (type != typeof(String) &&
+                           type.GetInterfaces().Contains(typeof(IEnumerable))) {
                     areEqual = type.CreateEnumerableEqualsFunc();
                     getHashCodeValue =
                         (instance) => HashCode.FromList((IEnumerable)getter(instance));
