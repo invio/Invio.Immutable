@@ -63,4 +63,4 @@ $revision = "{0:D4}" -f [convert]::ToInt32($revision, 10)
 
 exec { & dotnet test .\test\Invio.Immutable.Tests\Invio.Immutable.Tests.csproj -c Release }
 
-exec { & dotnet pack .\src\Invio.Immutable -c Release -o .\artifacts }
+exec { & dotnet pack .\src\Invio.Immutable -c Release -o ..\..\artifacts }
