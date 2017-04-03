@@ -237,6 +237,10 @@ namespace Invio.Immutable {
                         new HashSet<Object> { "foo" }
                     },
                     new object[] {
+                        new HashSet<Object> { null, null },
+                        new HashSet<Object> { null, null, null }
+                    },
+                    new object[] {
                         new HashSet<DateTime> { DateTime.MinValue },
                         new HashSet<DateTime> { DateTime.MinValue }
                     }
@@ -403,6 +407,10 @@ namespace Invio.Immutable {
                         new Object[] { "foo" }
                     },
                     new object[] {
+                        new Object[] { null },
+                        new Object[] { null }
+                    },
+                    new object[] {
                         ImmutableList.Create<DateTime>(DateTime.MinValue),
                         ImmutableList.Create<DateTime>(DateTime.MinValue)
                     }
@@ -457,6 +465,14 @@ namespace Invio.Immutable {
                     new object[] {
                         new Object[] { new Object() },
                         new Object[] { new Object() }
+                    },
+                    new object[] {
+                        new Object[] { null },
+                        new Object[] { new Object() }
+                    },
+                    new object[] {
+                        new Object[] { new Object() },
+                        new Object[] { null }
                     },
                     new object[] {
                         ImmutableList.Create<DateTime>(DateTime.MinValue, DateTime.MinValue),

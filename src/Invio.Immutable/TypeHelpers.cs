@@ -153,11 +153,11 @@ namespace Invio.Immutable {
                             return false;
                         }
 
-                        if ((left.Current == null) != (right.Current == null)) {
-                            return false;
-                        }
-
-                        if (!left.Current.Equals(right.Current)) {
+                        if (Object.ReferenceEquals(left.Current, null)) {
+                            if (!Object.ReferenceEquals(right.Current, null)) {
+                                return false;
+                            }
+                        } else if (!left.Current.Equals(right.Current)) {
                             return false;
                         }
 
