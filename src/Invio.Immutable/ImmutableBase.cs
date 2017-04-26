@@ -11,7 +11,7 @@ using Invio.Hashing;
 namespace Invio.Immutable {
 
     public abstract class ImmutableBase<TImmutable> : IEquatable<TImmutable>
-        where TImmutable : class {
+        where TImmutable : ImmutableBase<TImmutable> {
 
         private static Func<object[], TImmutable> createImmutable { get; }
         private static ImmutableArray<PropertyInfo> properties { get; }
@@ -21,9 +21,27 @@ namespace Invio.Immutable {
         private static ImmutableArray<Func<Object, Object, bool>> areEqualFuncs { get; }
 
         static ImmutableBase() {
-            const BindingFlags flags =
-                BindingFlags.Public | BindingFlags.IgnoreCase |
-                BindingFlags.Instance | BindingFlags.FlattenHierarchy;
+            var unsortedProperties = PropertyHelpers.GetProperties<TImmutable>();
+
+            var duplicatePropertyName =
+                unsortedProperties
+                    .Select(property => property.Name)
+                    .GroupBy(name => name, StringComparer.OrdinalIgnoreCase)
+                    .Where(group => group.Count() > 1)
+                    .Select(group => group.Key)
+                    .FirstOrDefault();
+
+            if (duplicatePropertyName != null) {
+                throw new NotSupportedException(
+                    $"ImmutableBase<{typeof(TImmutable).Name}> requires property " +
+                    $"names to be unique regardless of case, but two or more " +
+                    $"properties share the name of '{duplicatePropertyName}'."
+                );
+            }
+
+            var propertiesByName =
+                unsortedProperties
+                    .ToDictionary(property => property.Name, StringComparer.OrdinalIgnoreCase);
 
             var constructor = typeof(TImmutable).GetConstructors().Single();
 
@@ -32,7 +50,7 @@ namespace Invio.Immutable {
             properties =
                 constructor
                     .GetParameters()
-                    .Select(parameter => typeof(TImmutable).GetProperty(parameter.Name, flags))
+                    .Select(parameter => propertiesByName[parameter.Name])
                     .ToImmutableArray();
 
             getters =
