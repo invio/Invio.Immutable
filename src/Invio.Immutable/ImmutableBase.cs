@@ -39,11 +39,13 @@ namespace Invio.Immutable {
                 );
             }
 
+            var constructor =
+                ConstructorHelpers
+                    .GetImmutableSetterConstructor<TImmutable>(unsortedProperties);
+
             var propertiesByName =
                 unsortedProperties
                     .ToDictionary(property => property.Name, StringComparer.OrdinalIgnoreCase);
-
-            var constructor = typeof(TImmutable).GetConstructors().Single();
 
             createImmutable = constructor.CreateArrayFunc<TImmutable>();
 
