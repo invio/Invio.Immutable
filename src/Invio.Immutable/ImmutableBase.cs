@@ -21,31 +21,11 @@ namespace Invio.Immutable {
         private static ImmutableArray<Func<Object, Object, bool>> areEqualFuncs { get; }
 
         static ImmutableBase() {
-            var unsortedProperties = PropertyHelpers.GetProperties<TImmutable>();
-
-            var duplicatePropertyName =
-                unsortedProperties
-                    .Select(property => property.Name)
-                    .GroupBy(name => name, StringComparer.OrdinalIgnoreCase)
-                    .Where(group => group.Count() > 1)
-                    .Select(group => group.Key)
-                    .FirstOrDefault();
-
-            if (duplicatePropertyName != null) {
-                throw new NotSupportedException(
-                    $"ImmutableBase<{typeof(TImmutable).Name}> requires property " +
-                    $"names to be unique regardless of case, but two or more " +
-                    $"properties share the name of '{duplicatePropertyName}'."
-                );
-            }
+            var propertiesByName = PropertyHelpers.GetPropertyMap<TImmutable>();
 
             var constructor =
                 ConstructorHelpers
-                    .GetImmutableSetterConstructor<TImmutable>(unsortedProperties);
-
-            var propertiesByName =
-                unsortedProperties
-                    .ToDictionary(property => property.Name, StringComparer.OrdinalIgnoreCase);
+                    .GetImmutableSetterConstructor<TImmutable>(propertiesByName.Values.ToImmutableList());
 
             createImmutable = constructor.CreateArrayFunc<TImmutable>();
 

@@ -26,22 +26,45 @@ namespace Invio.Immutable {
         ///   An implementation of <see cref="ImmutableBase{TImmutable}" />
         ///   from which the caller wants to fetch its immutable properties.
         /// </typeparam>
+        /// <exception cref="NotSupportedException">
+        ///   Thrown when the <paramref name="properties" /> provided do not
+        ///   have unique names when accounting for case insensitivity.
+        /// </exception>
         /// <returns>
         ///   A collection of <see cref="PropertyInfo" /> members that have data
-        ///   accessible via public getters on <typeparamref name="TImmutable" />.
+        ///   accessible via public getters on <typeparamref name="TImmutable" />
+        ///   in a case-insensitive dictionary keyed by each property's name.
         /// </returns>
-        internal static IList<PropertyInfo> GetProperties<TImmutable>()
+        internal static IDictionary<String, PropertyInfo> GetPropertyMap<TImmutable>()
             where TImmutable : ImmutableBase<TImmutable> {
 
             const BindingFlags flags =
                 BindingFlags.Public | BindingFlags.Instance |
                 BindingFlags.FlattenHierarchy;
 
-            return
+            var properties =
                 typeof(TImmutable)
                     .GetProperties(flags)
                     .Where(property => property.GetGetMethod() != null)
                     .ToImmutableList();
+
+            var duplicatePropertyName =
+                properties
+                    .Select(property => property.Name)
+                    .GroupBy(name => name, StringComparer.OrdinalIgnoreCase)
+                    .Where(group => group.Count() > 1)
+                    .Select(group => group.Key)
+                    .FirstOrDefault();
+
+            if (duplicatePropertyName != null) {
+                throw new NotSupportedException(
+                    $"ImmutableBase<{typeof(TImmutable).Name}> requires property " +
+                    $"names to be unique regardless of case, but two or more " +
+                    $"properties share the name of '{duplicatePropertyName}'."
+                );
+            }
+
+            return properties.ToDictionary(p => p.Name, StringComparer.OrdinalIgnoreCase);
         }
 
     }
