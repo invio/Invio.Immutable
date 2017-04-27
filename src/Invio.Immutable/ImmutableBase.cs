@@ -25,7 +25,7 @@ namespace Invio.Immutable {
 
             var constructor =
                 ConstructorHelpers
-                    .GetImmutableSetterConstructor<TImmutable>(propertiesByName.Values.ToImmutableList());
+                    .GetImmutableSetterConstructor<TImmutable>(propertiesByName);
 
             createImmutable = constructor.CreateArrayFunc<TImmutable>();
 

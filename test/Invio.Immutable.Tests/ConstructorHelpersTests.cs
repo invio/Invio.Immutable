@@ -1,34 +1,63 @@
 using System;
+using System.Linq;
+using System.Reflection;
 using Xunit;
+
+using static Invio.Immutable.ConstructorHelpers;
 
 namespace Invio.Immutable {
 
     public class ConstructorTests {
 
         [Fact]
-        public void ThrowsOnMissingConstructor_TooFewParameters() {
+        public void GetImmutableSetterConstructor_NullPropertyMap() {
 
-            // Arrange & Act
+            // Act
 
             var exception = Record.Exception(
-                () => new TooFewParameters("Foo")
+                () => GetImmutableSetterConstructor<ValidTrivialExample>(null)
             );
 
             // Assert
 
-            Assert.IsType<TypeInitializationException>(exception);
+            Assert.IsType<ArgumentNullException>(exception);
+        }
 
-            Assert.NotNull(exception.InnerException);
-            var inner = Assert.IsType<NotSupportedException>(exception.InnerException);
+        private class ValidTrivialExample : ImmutableBase<ValidTrivialExample> {
+
+            public String Foo { get; }
+
+            public ValidTrivialExample(String foo) {
+                this.Foo = foo;
+            }
+
+        }
+
+        [Fact]
+        public void ThrowsOnMissingConstructor_TooFewParameters() {
+
+            // Arrange
+
+            var propertyMap = PropertyHelpers.GetPropertyMap<TooFewParameters>();
+
+            // Act
+
+            var exception = Record.Exception(
+                () => GetImmutableSetterConstructor<TooFewParameters>(propertyMap)
+            );
+
+            // Assert
+
+            Assert.IsType<NotSupportedException>(exception);
 
             Assert.StartsWith(
                 "The TooFewParameters class lacks a constructor which is " +
                 "compatible with the following signature: TooFewParameters(",
-                inner.Message
+                exception.Message
             );
 
-            Assert.Contains("String Foo", inner.Message, StringComparison.OrdinalIgnoreCase);
-            Assert.Contains("Guid Bar", inner.Message, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("String Foo", exception.Message, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("Guid Bar", exception.Message, StringComparison.OrdinalIgnoreCase);
         }
 
         private class TooFewParameters : ImmutableBase<TooFewParameters> {
@@ -45,27 +74,28 @@ namespace Invio.Immutable {
         [Fact]
         public void ThrowsOnMissingConstructor_TooManyParameters() {
 
-            // Arrange & Act
+            // Arrange
+
+            var propertyMap = PropertyHelpers.GetPropertyMap<TooFewParameters>();
+
+            // Act
 
             var exception = Record.Exception(
-                () => new TooManyParameters("Foo", Guid.NewGuid(), 1337)
+                () => GetImmutableSetterConstructor<TooManyParameters>(propertyMap)
             );
 
             // Assert
 
-            Assert.IsType<TypeInitializationException>(exception);
-
-            Assert.NotNull(exception.InnerException);
-            var inner = Assert.IsType<NotSupportedException>(exception.InnerException);
+            Assert.IsType<NotSupportedException>(exception);
 
             Assert.StartsWith(
                 "The TooManyParameters class lacks a constructor which is " +
                 "compatible with the following signature: TooManyParameters(",
-                inner.Message
+                exception.Message
             );
 
-            Assert.Contains("String Foo", inner.Message, StringComparison.OrdinalIgnoreCase);
-            Assert.Contains("Guid Bar", inner.Message, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("String Foo", exception.Message, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("Guid Bar", exception.Message, StringComparison.OrdinalIgnoreCase);
         }
 
         private class TooManyParameters : ImmutableBase<TooManyParameters> {
@@ -81,22 +111,99 @@ namespace Invio.Immutable {
         }
 
         [Fact]
+        public void ThrowsOnMissingConstructor_MismatchedParameterName() {
+
+            // Arrange
+
+            var propertyMap = PropertyHelpers.GetPropertyMap<MismatchedParameterName>();
+
+            // Act
+
+            var exception = Record.Exception(
+                () => GetImmutableSetterConstructor<MismatchedParameterName>(propertyMap)
+            );
+
+            // Assert
+
+            Assert.IsType<NotSupportedException>(exception);
+
+            Assert.StartsWith(
+                "The MismatchedParameterName class lacks a constructor which is " +
+                "compatible with the following signature: MismatchedParameterName(",
+                exception.Message
+            );
+
+            Assert.Contains("String Foo", exception.Message, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("Guid Bar", exception.Message, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private class MismatchedParameterName : ImmutableBase<MismatchedParameterName> {
+
+            public String Foo { get; }
+            public Guid Bar { get; }
+
+            public MismatchedParameterName(String foo, Guid bizz) {
+                this.Foo = foo;
+                this.Bar = bizz;
+            }
+
+        }
+
+        [Fact]
+        public void ThrowsOnMissingConstructor_MismatchedParameterType() {
+
+            // Arrange
+
+            var propertyMap = PropertyHelpers.GetPropertyMap<MismatchedParameterType>();
+
+            // Act
+
+            var exception = Record.Exception(
+                () => GetImmutableSetterConstructor<MismatchedParameterType>(propertyMap)
+            );
+
+            // Assert
+
+            Assert.IsType<NotSupportedException>(exception);
+
+            Assert.StartsWith(
+                "The MismatchedParameterType class lacks a constructor which is " +
+                "compatible with the following signature: MismatchedParameterType(",
+                exception.Message
+            );
+
+            Assert.Contains("String Foo", exception.Message, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("String Bar", exception.Message, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private class MismatchedParameterType : ImmutableBase<MismatchedParameterType> {
+
+            public String Foo { get; }
+            public String Bar { get; }
+
+            public MismatchedParameterType(String foo, Guid bar) {
+                this.Foo = foo;
+                this.Bar = bar.ToString();
+            }
+
+        }
+
+        [Fact]
         public void FindsMatching_WithManyConstructors() {
 
             // Arrange
 
-            var originalBar = Guid.NewGuid();
-            var original = new WithManyConstructors(Tuple.Create("Foo", originalBar));
+            var propertyMap = PropertyHelpers.GetPropertyMap<WithManyConstructors>();
+            var expected = GetExpectedConstructor<WithManyConstructors>();
 
             // Act
 
-            const string updatedFoo = "Update";
-            var updated = original.SetFoo(updatedFoo);
+            var actual = GetImmutableSetterConstructor<WithManyConstructors>(propertyMap);
 
             // Assert
 
-            Assert.Equal(updated.Foo, updatedFoo);
-            Assert.Equal(updated.Bar, originalBar);
+            Assert.NotNull(actual);
+            Assert.Equal(expected, actual);
         }
 
         private class WithManyConstructors : ImmutableBase<WithManyConstructors> {
@@ -107,6 +214,7 @@ namespace Invio.Immutable {
             public WithManyConstructors(Tuple<String, Guid> tuple) :
                 this(tuple.Item1, tuple.Item2) {}
 
+            [Expected]
             public WithManyConstructors(String foo, Guid bar) {
                 this.Foo = foo;
                 this.Bar = bar;
@@ -123,17 +231,17 @@ namespace Invio.Immutable {
 
             // Arrange
 
-            var original = WithPrivateConstructor.Empty;
+            var propertyMap = PropertyHelpers.GetPropertyMap<WithPrivateConstructor>();
+            var expected = GetExpectedConstructor<WithPrivateConstructor>();
 
             // Act
 
-            const string updatedFoo = "Foo";
-            var updated = original.SetFoo(updatedFoo);
+            var actual = GetImmutableSetterConstructor<WithPrivateConstructor>(propertyMap);
 
             // Assert
 
-            Assert.Equal(updated.Foo, updatedFoo);
-            Assert.Equal(updated.Bar, original.Bar);
+            Assert.NotNull(actual);
+            Assert.Equal(expected, actual);
         }
 
         private class WithPrivateConstructor : ImmutableBase<WithPrivateConstructor> {
@@ -144,6 +252,7 @@ namespace Invio.Immutable {
             public String Foo { get; }
             public Guid Bar { get; }
 
+            [Expected]
             private WithPrivateConstructor(
                 String foo = default(String),
                 Guid bar = default(Guid)) {
@@ -163,17 +272,17 @@ namespace Invio.Immutable {
 
             // Arrange
 
-            var original = WithProtectedConstructor.Empty;
+            var propertyMap = PropertyHelpers.GetPropertyMap<WithProtectedConstructor>();
+            var expected = GetExpectedConstructor<WithProtectedConstructor>();
 
             // Act
 
-            const string updatedFoo = "Foo";
-            var updated = original.SetFoo(updatedFoo);
+            var actual = GetImmutableSetterConstructor<WithProtectedConstructor>(propertyMap);
 
             // Assert
 
-            Assert.Equal(updated.Foo, updatedFoo);
-            Assert.Equal(updated.Bar, original.Bar);
+            Assert.NotNull(actual);
+            Assert.Equal(expected, actual);
         }
 
         private class WithProtectedConstructor : ImmutableBase<WithProtectedConstructor> {
@@ -184,6 +293,7 @@ namespace Invio.Immutable {
             public String Foo { get; }
             public Guid Bar { get; }
 
+            [Expected]
             private WithProtectedConstructor(
                 String foo = default(String),
                 Guid bar = default(Guid)) {
@@ -203,17 +313,17 @@ namespace Invio.Immutable {
 
             // Arrange
 
-            var original = new IgnoresStaticMembers("OriginalFoo");
+            var expected = GetExpectedConstructor<IgnoresStaticMembers>();
+            var propertyMap = PropertyHelpers.GetPropertyMap<IgnoresStaticMembers>();
 
             // Act
 
-            const string updatedFoo = "UpdatedFoo";
-            var updated = original.SetFoo(updatedFoo);
+            var actual = GetImmutableSetterConstructor<IgnoresStaticMembers>(propertyMap);
 
             // Assert
 
-            Assert.Equal(updated.Foo, updatedFoo);
-            Assert.Equal(IgnoresStaticMembers.StaticProperty, "SetViaStaticConstructor");
+            Assert.NotNull(actual);
+            Assert.Equal(expected, actual);
         }
 
         private class IgnoresStaticMembers : ImmutableBase<IgnoresStaticMembers> {
@@ -226,6 +336,7 @@ namespace Invio.Immutable {
 
             public String Foo { get; }
 
+            [Expected]
             public IgnoresStaticMembers(String foo) {
                 this.Foo = foo;
             }
@@ -239,24 +350,25 @@ namespace Invio.Immutable {
         [Fact]
         public void DecoratedConstructor_TooManyDecorated() {
 
-            // Arrange & Act
+            // Arrange
+
+            var propertyMap = PropertyHelpers.GetPropertyMap<IgnoresStaticMembers>();
+
+            // Act
 
             var exception = Record.Exception(
-                () => new TooManyDecorated("Foo", Guid.NewGuid())
+                () => GetImmutableSetterConstructor<TooManyDecorated>(propertyMap)
             );
 
             // Assert
 
-            Assert.IsType<TypeInitializationException>(exception);
-
-            Assert.NotNull(exception.InnerException);
-            var inner = Assert.IsType<InvalidOperationException>(exception.InnerException);
+            Assert.IsType<InvalidOperationException>(exception);
 
             Assert.Equal(
                 "The TooManyDecorated class has 2 constructors decorated " +
                 "with the ImmutableSetterConstructorAttribute. Only one " +
                 "constructor is allowed to have this attribute at a time.",
-                inner.Message
+                exception.Message
             );
         }
 
@@ -282,28 +394,29 @@ namespace Invio.Immutable {
         [Fact]
         public void DecoratedConstructor_DecoratedIncompatible() {
 
-            // Arrange & Act
+            // Arrange
+
+            var propertyMap = PropertyHelpers.GetPropertyMap<DecoratedIncompatible>();
+
+            // Act
 
             var exception = Record.Exception(
-                () => new DecoratedIncompatible("Foo", Guid.NewGuid())
+                () => GetImmutableSetterConstructor<DecoratedIncompatible>(propertyMap)
             );
 
             // Assert
 
-            Assert.IsType<TypeInitializationException>(exception);
-
-            Assert.NotNull(exception.InnerException);
-            var inner = Assert.IsType<InvalidOperationException>(exception.InnerException);
+            Assert.IsType<InvalidOperationException>(exception);
 
             Assert.StartsWith(
                 "The DecoratedIncompatible class has a constructor decorated " +
                 "with ImmutableSetterConstructorAttribute that is incompatible " +
                 "with the following signature: DecoratedIncompatible(",
-                inner.Message
+                exception.Message
             );
 
-            Assert.Contains("String Foo", inner.Message, StringComparison.OrdinalIgnoreCase);
-            Assert.Contains("Guid Bar", inner.Message, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("String Foo", exception.Message, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("Guid Bar", exception.Message, StringComparison.OrdinalIgnoreCase);
         }
 
         private class DecoratedIncompatible : ImmutableBase<DecoratedIncompatible> {
@@ -328,21 +441,20 @@ namespace Invio.Immutable {
 
             // Arrange
 
-            var original = new ValidDecorated();
-            ValidDecorated.IsDecoratedCalled = false;
+            var propertyMap = PropertyHelpers.GetPropertyMap<ValidDecorated>();
+            var expected = GetExpectedConstructor<ValidDecorated>();
 
             // Act
 
-            original.SetFoo("Updated");
+            var actual = GetImmutableSetterConstructor<ValidDecorated>(propertyMap);
 
             // Assert
 
-            Assert.True(ValidDecorated.IsDecoratedCalled);
+            Assert.NotNull(actual);
+            Assert.Equal(expected, actual);
         }
 
         public class ValidDecorated : ImmutableBase<ValidDecorated> {
-
-            public static bool IsDecoratedCalled = false;
 
             public String Foo { get; }
             public Guid Bar { get; }
@@ -372,13 +484,11 @@ namespace Invio.Immutable {
                 this.Bizz = bizz;
             }
 
-            [ImmutableSetterConstructor]
+            [ImmutableSetterConstructor, Expected]
             public ValidDecorated(Guid bar, Int32 bizz, String foo) {
                 this.Bizz = bizz;
                 this.Bar = bar;
                 this.Foo = foo;
-
-                ValidDecorated.IsDecoratedCalled = true;
             }
 
             public ValidDecorated(Int32 bizz, String foo, Guid bar) {
@@ -398,6 +508,19 @@ namespace Invio.Immutable {
             }
 
         }
+
+        private static ConstructorInfo GetExpectedConstructor<TImmutable>() {
+            const BindingFlags flags =
+                BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
+
+            return typeof(TImmutable).GetConstructors(flags).Single(IsExpectedConstructor);
+        }
+
+        private static bool IsExpectedConstructor(ConstructorInfo constructor) {
+            return constructor.GetCustomAttributes(typeof(ExpectedAttribute)).Any();
+        }
+
+        private class ExpectedAttribute : Attribute {}
 
     }
 

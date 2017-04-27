@@ -228,6 +228,24 @@ namespace Invio.Immutable {
             AssertFakesEqual(fake, fake);
         }
 
+        [Fact]
+        public void MultipleConstructors_ValidImmutableSetterDecoration() {
+
+            // Arrange
+
+            var original = new SimpleDecoratedFake("Foo", Guid.NewGuid());
+
+            // Act
+
+            const string updatedFoo = "Updated";
+            var updated = original.SetFoo(updatedFoo);
+
+            // Assert
+
+            Assert.Equal(updatedFoo, updated.Foo);
+            Assert.Equal(original.Bar, updated.Bar);
+        }
+
         private static void AssertFakesEqual(
             SimpleImmutableFake left,
             SimpleImmutableFake right) {
@@ -284,6 +302,26 @@ namespace Invio.Immutable {
 
             public SimpleImmutableFake SetReferenceProperty(Object referenceProperty) {
                 return this.SetPropertyValueImpl(nameof(ReferenceProperty), referenceProperty);
+            }
+
+        }
+
+        private class SimpleDecoratedFake : ImmutableBase<SimpleDecoratedFake> {
+
+            public String Foo { get; }
+            public Guid Bar { get; }
+
+            public SimpleDecoratedFake(Tuple<String, Guid> tuple) :
+                this(tuple.Item1, tuple.Item2) {}
+
+            [ImmutableSetterConstructor]
+            public SimpleDecoratedFake(String foo, Guid bar) {
+                this.Foo = foo;
+                this.Bar = bar;
+            }
+
+            public SimpleDecoratedFake SetFoo(String foo) {
+                return this.SetPropertyValueImpl(nameof(Foo), foo);
             }
 
         }

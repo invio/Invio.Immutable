@@ -27,18 +27,25 @@ namespace Invio.Immutable {
         ///   An implementation of <see cref="ImmutableBase{TImmutable}" />
         ///   from which the caller wants to inspect for matching constructors.
         /// </typeparam>
-        /// <param name="properties">
+        /// <param name="propertiesByName">
         ///   A collection of <see cref="PropertyInfo" /> objects whose names
         ///   and types will be used to find a matching constructor on
-        ///   <typeparamref name="TImmutable" />. If not matching constructor is
+        ///   <typeparamref name="TImmutable" />. If no matching constructor is
         ///   found, a suitable <see cref="ArgumentException" /> will be thrown.
         /// </param>
         /// <exception cref="ArgumentNullException">
-        ///   Thrown when <paramref name="properties" /> is null.
+        ///   Thrown when <paramref name="propertiesByName" /> is null.
         /// </exception>
-        /// <exception cref="ArgumentException">
-        ///   Thrown when the <paramref name="properties" /> provided do not map
-        ///   to the types and names of any constructor found on
+        /// <exception cref="InvalidOperationException">
+        ///   Thrown when either two or more constructors on <typeparamref name="TImmutable" />
+        ///   are decorated with <see cref="ImmutableSetterConstructorAttribute />, or if the
+        ///   single constructor decorated with
+        ///   <see cref="ImmutableSetterConstructorAttribute" /> is incompatible with the
+        ///   <paramref name="propertiesByName" /> provided.
+        /// </exception>
+        /// <exception cref="NotSupportedException">
+        ///   Thrown when the <paramref name="propertiesByName" /> provided
+        ///   do not map to the types and names of any constructor found on
         ///   <typeparamref name="TImmutable" />.
         /// </exception>
         /// <returns>
@@ -47,12 +54,12 @@ namespace Invio.Immutable {
         ///   <see cref="IList{PropertyInfo}" /> accessible via public getters.
         /// </returns>
         internal static ConstructorInfo GetImmutableSetterConstructor<TImmutable>(
-            IList<PropertyInfo> properties) where TImmutable : ImmutableBase<TImmutable> {
+            IDictionary<String, PropertyInfo> propertiesByName)
+                where TImmutable : ImmutableBase<TImmutable> {
 
-            var propertiesByName = properties.ToImmutableDictionary(
-                property => property.Name,
-                StringComparer.OrdinalIgnoreCase
-            );
+            if (propertiesByName == null) {
+                throw new ArgumentNullException(nameof(propertiesByName));
+            }
 
             const BindingFlags flags =
                 BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
@@ -81,7 +88,7 @@ namespace Invio.Immutable {
                         $"The {typeof(TImmutable).Name} class has a constructor decorated " +
                         $"with {nameof(ImmutableSetterConstructorAttribute)} that is " +
                         $"incompatible with the following signature: " +
-                        $"{ToSignature<TImmutable>(properties)}."
+                        $"{ToSignature<TImmutable>(propertiesByName)}."
                     );
                 }
 
@@ -97,7 +104,7 @@ namespace Invio.Immutable {
                 throw new NotSupportedException(
                     $"The {typeof(TImmutable).Name} class lacks a constructor which " +
                     $"is compatible with the following signature: " +
-                    $"{ToSignature<TImmutable>(properties)}."
+                    $"{ToSignature<TImmutable>(propertiesByName)}."
                 );
             }
 
@@ -136,11 +143,12 @@ namespace Invio.Immutable {
             return true;
         }
 
-        private static String ToSignature<TImmutable>(IList<PropertyInfo> properties)
-            where TImmutable : ImmutableBase<TImmutable> {
+        private static String ToSignature<TImmutable>(
+            IDictionary<String, PropertyInfo> propertiesByName)
+                where TImmutable : ImmutableBase<TImmutable> {
 
             var builder = new StringBuilder($"{typeof(TImmutable).Name}(");
-            builder.Append(String.Join(", ", properties.Select(ToSignature)));
+            builder.Append(String.Join(", ", propertiesByName.Values.Select(ToSignature)));
             builder.Append(")");
 
             return builder.ToString();
