@@ -59,8 +59,8 @@ namespace Invio.Immutable {
             var inner = Assert.IsType<NotSupportedException>(exception.InnerException);
 
             Assert.StartsWith(
-                "The TooFewParameters class lacks a constructor " +
-                "with the following signature: TooFewParameters(",
+                "The TooFewParameters class lacks a constructor which is " +
+                "compatible with the following signature: TooFewParameters(",
                 inner.Message
             );
 
@@ -96,8 +96,8 @@ namespace Invio.Immutable {
             var inner = Assert.IsType<NotSupportedException>(exception.InnerException);
 
             Assert.StartsWith(
-                "The TooManyParameters class lacks a constructor " +
-                "with the following signature: TooManyParameters(",
+                "The TooManyParameters class lacks a constructor which is " +
+                "compatible with the following signature: TooManyParameters(",
                 inner.Message
             );
 
@@ -268,6 +268,169 @@ namespace Invio.Immutable {
             }
 
             public IgnoresStaticMembers SetFoo(String foo) {
+                return this.SetPropertyValueImpl(nameof(Foo), foo);
+            }
+
+        }
+
+        [Fact]
+        public void DecoratedConstructor_TooManyDecorated() {
+
+            // Arrange & Act
+
+            var exception = Record.Exception(
+                () => new TooManyDecorated("Foo", Guid.NewGuid())
+            );
+
+            // Assert
+
+            Assert.IsType<TypeInitializationException>(exception);
+
+            Assert.NotNull(exception.InnerException);
+            var inner = Assert.IsType<InvalidOperationException>(exception.InnerException);
+
+            Assert.Equal(
+                "The TooManyDecorated class has 2 constructors decorated " +
+                "with the ImmutableSetterConstructorAttribute. Only one " +
+                "constructor is allowed to have this attribute at a time.",
+                inner.Message
+            );
+        }
+
+        private class TooManyDecorated : ImmutableBase<TooManyDecorated> {
+
+            public String Foo { get; }
+            public Guid Bar { get; }
+
+            [ImmutableSetterConstructor]
+            public TooManyDecorated(String foo, Guid bar) {
+                this.Foo = foo;
+                this.Bar = bar;
+            }
+
+            [ImmutableSetterConstructor]
+            public TooManyDecorated(Guid bar, String foo) {
+                this.Foo = foo;
+                this.Bar = bar;
+            }
+
+        }
+
+        [Fact]
+        public void DecoratedConstructor_DecoratedIncompatible() {
+
+            // Arrange & Act
+
+            var exception = Record.Exception(
+                () => new DecoratedIncompatible("Foo", Guid.NewGuid())
+            );
+
+            // Assert
+
+            Assert.IsType<TypeInitializationException>(exception);
+
+            Assert.NotNull(exception.InnerException);
+            var inner = Assert.IsType<InvalidOperationException>(exception.InnerException);
+
+            Assert.StartsWith(
+                "The DecoratedIncompatible class has a constructor decorated " +
+                "with ImmutableSetterConstructorAttribute that is incompatible " +
+                "with the following signature: DecoratedIncompatible(",
+                inner.Message
+            );
+
+            Assert.Contains("String Foo", inner.Message, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("Guid Bar", inner.Message, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private class DecoratedIncompatible : ImmutableBase<DecoratedIncompatible> {
+
+            public String Foo { get; }
+            public Guid Bar { get; }
+
+            [ImmutableSetterConstructor]
+            public DecoratedIncompatible(String foo) {
+                this.Foo = foo;
+            }
+
+            public DecoratedIncompatible(String foo, Guid bar) {
+                this.Foo = foo;
+                this.Bar = bar;
+            }
+
+        }
+
+        [Fact]
+        public void DecoratedConstructor_ValidDecorated() {
+
+            // Arrange
+
+            var original = new ValidDecorated();
+            ValidDecorated.IsDecoratedCalled = false;
+
+            // Act
+
+            original.SetFoo("Updated");
+
+            // Assert
+
+            Assert.True(ValidDecorated.IsDecoratedCalled);
+        }
+
+        public class ValidDecorated : ImmutableBase<ValidDecorated> {
+
+            public static bool IsDecoratedCalled = false;
+
+            public String Foo { get; }
+            public Guid Bar { get; }
+            public Int32 Bizz { get; }
+
+            public ValidDecorated() {
+                this.Foo = null;
+                this.Bar = Guid.Empty;
+                this.Bizz = 0;
+            }
+
+            public ValidDecorated(String foo, Guid bar, Int32 bizz) {
+                this.Foo = foo;
+                this.Bar = bar;
+                this.Bizz = bizz;
+            }
+
+            public ValidDecorated(String foo, Int32 bizz, Guid bar) {
+                this.Foo = foo;
+                this.Bizz = bizz;
+                this.Bar = bar;
+            }
+
+            public ValidDecorated(Guid bar, String foo, Int32 bizz) {
+                this.Bar = bar;
+                this.Foo = foo;
+                this.Bizz = bizz;
+            }
+
+            [ImmutableSetterConstructor]
+            public ValidDecorated(Guid bar, Int32 bizz, String foo) {
+                this.Bizz = bizz;
+                this.Bar = bar;
+                this.Foo = foo;
+
+                ValidDecorated.IsDecoratedCalled = true;
+            }
+
+            public ValidDecorated(Int32 bizz, String foo, Guid bar) {
+                this.Bizz = bizz;
+                this.Foo = foo;
+                this.Bar = bar;
+            }
+
+            public ValidDecorated(Int32 bizz, Guid bar, String foo) {
+                this.Bizz = bizz;
+                this.Bar = bar;
+                this.Foo = foo;
+            }
+
+            public ValidDecorated SetFoo(String foo) {
                 return this.SetPropertyValueImpl(nameof(Foo), foo);
             }
 

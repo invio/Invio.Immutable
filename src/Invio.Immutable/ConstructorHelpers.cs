@@ -49,31 +49,66 @@ namespace Invio.Immutable {
         internal static ConstructorInfo GetImmutableSetterConstructor<TImmutable>(
             IList<PropertyInfo> properties) where TImmutable : ImmutableBase<TImmutable> {
 
-            if (properties == null) {
-                throw new ArgumentNullException(nameof(properties));
-            }
-
-            var propertiesByName =
-                properties
-                    .ToDictionary(property => property.Name, StringComparer.OrdinalIgnoreCase);
+            var propertiesByName = properties.ToImmutableDictionary(
+                property => property.Name,
+                StringComparer.OrdinalIgnoreCase
+            );
 
             const BindingFlags flags =
                 BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
 
+            var constructors = typeof(TImmutable).GetConstructors(flags);
+
+            var decoratedConstructors =
+                constructors
+                    .Where(HasImmutableSetterAttribute)
+                    .ToImmutableList();
+
+            if (decoratedConstructors.Count > 1) {
+                throw new InvalidOperationException(
+                    $"The {typeof(TImmutable).Name} class has {decoratedConstructors.Count} " +
+                    $"constructors decorated with the " +
+                    $"{nameof(ImmutableSetterConstructorAttribute)}. " +
+                    $"Only one constructor is allowed to have this attribute at a time."
+                );
+            }
+
+            if (decoratedConstructors.Count == 1) {
+                var decoratedConstructor = decoratedConstructors.Single();
+
+                if (!IsMatchingConstructor(decoratedConstructor, propertiesByName)) {
+                    throw new InvalidOperationException(
+                        $"The {typeof(TImmutable).Name} class has a constructor decorated " +
+                        $"with {nameof(ImmutableSetterConstructorAttribute)} that is " +
+                        $"incompatible with the following signature: " +
+                        $"{ToSignature<TImmutable>(properties)}."
+                    );
+                }
+
+                return decoratedConstructor;
+            }
+
             var constructor =
-                typeof(TImmutable)
-                    .GetConstructors(flags)
+                constructors
                     .OrderBy(c => c.IsPublic ? 0 : 1)
                     .FirstOrDefault(c => IsMatchingConstructor(c, propertiesByName));
 
             if (constructor == null) {
                 throw new NotSupportedException(
-                    $"The {typeof(TImmutable).Name} class lacks a constructor with " +
-                    $"the following signature: {ToSignature<TImmutable>(properties)}."
+                    $"The {typeof(TImmutable).Name} class lacks a constructor which " +
+                    $"is compatible with the following signature: " +
+                    $"{ToSignature<TImmutable>(properties)}."
                 );
             }
 
             return constructor;
+        }
+
+        private static bool HasImmutableSetterAttribute(ConstructorInfo constructor) {
+            return
+                constructor
+                    .GetCustomAttributes(typeof(ImmutableSetterConstructorAttribute))
+                    .Any();
         }
 
         private static bool IsMatchingConstructor(
