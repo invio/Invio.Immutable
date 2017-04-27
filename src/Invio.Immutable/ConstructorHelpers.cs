@@ -21,7 +21,7 @@ namespace Invio.Immutable {
         /// <summary>
         ///   Gets the constructor that will be used to create new instances of
         ///   <typeparamref name="TImmutable" /> whenever
-        ///   <see cref="ImmutableBase.SetPropertyValueImpl" /> is called.
+        ///   <see cref="ImmutableBase{TImmutable}.SetPropertyValueImpl" /> is called.
         /// </summary>
         /// <typeparam name="TImmutable">
         ///   An implementation of <see cref="ImmutableBase{TImmutable}" />
@@ -38,7 +38,7 @@ namespace Invio.Immutable {
         /// </exception>
         /// <exception cref="InvalidOperationException">
         ///   Thrown when either two or more constructors on <typeparamref name="TImmutable" />
-        ///   are decorated with <see cref="ImmutableSetterConstructorAttribute />, or if the
+        ///   are decorated with <see cref="ImmutableSetterConstructorAttribute" />, or if the
         ///   single constructor decorated with
         ///   <see cref="ImmutableSetterConstructorAttribute" /> is incompatible with the
         ///   <paramref name="propertiesByName" /> provided.

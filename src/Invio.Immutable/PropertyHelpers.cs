@@ -20,15 +20,15 @@ namespace Invio.Immutable {
         /// <summary>
         ///   Gets the properties that will be have their values carried forward
         ///   to new instances of <typeparamref name="TImmutable" /> whenever
-        ///   <see cref="ImmutableBase.SetPropertyValueImpl" /> is called.
+        ///   <see cref="ImmutableBase{TImmutable}.SetPropertyValueImpl" /> is called.
         /// </summary>
         /// <typeparam name="TImmutable">
         ///   An implementation of <see cref="ImmutableBase{TImmutable}" />
         ///   from which the caller wants to fetch its immutable properties.
         /// </typeparam>
         /// <exception cref="NotSupportedException">
-        ///   Thrown when the <paramref name="properties" /> provided do not
-        ///   have unique names when accounting for case insensitivity.
+        ///   Thrown when the properties found on <typeparamref name="TImmutable" />
+        ///   do not have unique names when accounting for case insensitivity.
         /// </exception>
         /// <returns>
         ///   A collection of <see cref="PropertyInfo" /> members that have data

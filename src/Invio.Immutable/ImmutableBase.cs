@@ -78,6 +78,33 @@ namespace Invio.Immutable {
             areEqualFuncs = areEqualFuncsBuilder.ToImmutable();
         }
 
+        /// <summary>
+        ///   Gets the current value for the publicly accessible property found on
+        ///   <typeparamref name="TImmutable" /> that could be uniquely identified
+        ///   by <paramref name="propertyName" />.
+        /// </summary>
+        /// <remarks>
+        ///   <para>
+        ///     This method is intentionally left as 'protected' so that
+        ///     <see cref="ImmutableBase{TImmutable}" /> leaves it up to the implementer as
+        ///     to whether or not he or she wishes to expose the generic retrieval of values.
+        ///   </para>
+        /// </remarks>
+        /// <param name="propertyName">
+        ///   The name of a publicly accessible property on <typeparamref name="TImmutable" />
+        ///   that will have its value returned via the invocation of this method. The approach
+        ///   used to locate a property with a matching name uses ordinal case-insensitivity.
+        /// </param>
+        /// <exception cref="ArgumentNullException">
+        ///   Thrown when <paramref name="propertyName" /> is null.
+        /// </exception>
+        /// <exception cref="ArgumentException">
+        ///   Thrown when no public property that has the same name as that which was
+        ///   provided via <paramref name="propertyName" /> was found.
+        /// </exception>
+        /// <returns>
+        ///   The value of the property identified by <paramref name="propertyName" />.
+        /// </returns>
         protected object GetPropertyValueImpl(String propertyName) {
             if (propertyName == null) {
                 throw new ArgumentNullException(nameof(propertyName));
@@ -95,6 +122,50 @@ namespace Invio.Immutable {
             return getter(this);
         }
 
+        /// <summary>
+        ///   Takes all of the current values for all of the publicly accessible properties
+        ///   found on <typeparamref name="TImmutable" /> and uses them to creates a new
+        ///   instance of <typeparamref name="TImmutable" /> after replacing the current value
+        ///   for the property identified by <paramref name="propertyName" /> with the
+        ///   provided <paramref name="value" />.
+        /// </summary>
+        /// <remarks>
+        ///   <para>
+        ///     This method leaves the current instance of <typeparamref name="TImmutable" />
+        ///     unaffected. Only the new instance returned from this method will have the
+        ///     property identified by <paramref name="propertyName" /> changed to the
+        ///     provided <paramref name="value" />.
+        ///   </para>
+        ///   <para>
+        ///     This method is intentionally left as 'protected' so that
+        ///     <see cref="ImmutableBase{TImmutable}" /> leaves it up to the implementer as
+        ///     to whether or not he or she wishes to expose the generic setting of values.
+        ///   </para>
+        /// </remarks>
+        /// <param name="propertyName">
+        ///   The name of the property that exists on <typeparamref name="TImmutable" />
+        ///   that is to have its value updated to the provided <paramref name="value" />
+        ///   on the new instance of <typeparamref name="TImmutable" />. The approach used
+        ///   to locate a property with a matching name uses ordinal case-insensitivity.
+        /// </param>
+        /// <param name="value">
+        ///   The new value for the property identified via <paramref name="propertyName" />
+        ///   that will be used on the new instance of <typeparamref name="TImmutable" />.
+        /// </param>
+        /// <exception cref="ArgumentNullException">
+        ///   Thrown when <paramref name="propertyName" /> is null.
+        /// </exception>
+        /// <exception cref="ArgumentException">
+        ///   Thrown when no public property that has the same name as that which was provided
+        ///   via <paramref name="propertyName" /> was found, or if the value provided via
+        ///   <paramref name="value" /> is incompatible with the identified property's type.
+        /// </exception>
+        /// <returns>
+        ///   A new instance of <typeparamref name="TImmutable" /> which has all of the
+        ///   same values for all of its public properties with the exception of the
+        ///   property identified by <paramref name="propertyName" />. That property
+        ///   will have the value provided via <paramref name="value" />.
+        /// </returns>
         protected TImmutable SetPropertyValueImpl(String propertyName, object value) {
             if (propertyName == null) {
                 throw new ArgumentNullException(nameof(propertyName));
