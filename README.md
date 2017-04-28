@@ -65,9 +65,9 @@ public class User : IEquatable<User> {
 
 This allows every instance of `User` to be compared against any other instance of `User` based upon the values of its properties, but with numerous headaches:
 
-1. Everytime a property is removed or renamed, all of the set, equality, hashing, and string conversion implementations need to be updated to reflect the updates to the property.
-2. The `GetHashCode()`, `Equals()`, and `ToString()` implementations are predictable implementations of a pattern.
-3. Properties that store reference types need to add branching logic in order to dance around null.
+1. Everytime a property is added, removed or changed, the setter, equality, hash code, and to string implementations need to be updated to coincide with it.
+2. The `GetHashCode()`, `Equals()`, and `ToString()` implementations are deterministic, yet required to be managed by the implementer.
+3. Properties that store reference types need to add branching logic in order to appropriately manage null when they have their values compared for equality or used for hash code generation.
 
 Here is an alternative implementation of `User` using the `ImmutableBase<TImmutable>` class found in this library would result in the following:
 
