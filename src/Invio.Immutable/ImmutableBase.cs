@@ -10,6 +10,14 @@ using Invio.Hashing;
 
 namespace Invio.Immutable {
 
+    /// <summary>
+    ///   A reuseable base class that allows for the definition of classes that
+    ///   encapsulate a collection of related immutable properties.
+    /// </summary>
+    /// <typeparam name="TImmutable">
+    ///   The class which inherits from <see cref="ImmutableBase{TImmutable}" />
+    ///   that encapsulates a collection of related immutable properties.
+    /// </typeparam>
     public abstract class ImmutableBase<TImmutable> : IEquatable<TImmutable>
         where TImmutable : ImmutableBase<TImmutable> {
 
