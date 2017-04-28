@@ -214,14 +214,72 @@ namespace Invio.Immutable {
             return type.IsAssignableFrom(value.GetType());
         }
 
+        /// <summary>
+        ///   Generates a consistent hash code based upon the values of each of
+        ///   the publically accessible properties on this instance of
+        ///   <typeparamref name="TImmutable" />. If a non-String property
+        ///   implements <see cref="IEnumerable" />, its items' hash codes
+        ///   are combined to generate a hash code for that property.
+        /// </summary>
+        /// <remarks>
+        ///   For properties that implement <see cref="IEnumerable" />, the
+        ///   hash codes of the items are combined to represent the hash code
+        ///   of the property's value. If the property also implements the
+        ///   <see cref="ISet{T}" /> interface, the order of the items is
+        ///   ignored with regard to hash code generation. If the property
+        ///   does not implement <see cref="ISet{T}" />, order is respected.
+        /// </remarks>
+        /// <returns>
+        ///   A consistent hash code based upon the values of each of the
+        ///   publically accessibly properties.
+        /// </returns>
         public override int GetHashCode() {
             return HashCode.From(getHashCodeValues.Select(getter => getter(this)));
         }
 
+        /// <summary>
+        ///   Determines whether or not this instance of <typeparamref name="TImmutable" />
+        ///   is equal to <paramref name="that" />. The two instances will only be
+        ///   considered equal if <paramref name="that" /> is an instance of
+        ///   <typeparamref name="TImmutable" /> which is considered equal to this instance
+        ///   when passed to the <see cref="Equals(TImmutable)" /> overload of this method.
+        /// </summary>
+        /// <param name="that">
+        ///   An object that, if it is an instance of <typeparamref name="TImmutable" />,
+        ///   will be compared against this instance for equality via
+        ///   <see cref="Equals(TImmutable)" />.
+        /// </param>
+        /// <returns>
+        ///   Whether or not this instance of <typeparamref name="TImmutable" />
+        ///   is equal to <paramref name="that" />.
+        /// </returns>
         public override bool Equals(Object that) {
             return this.Equals(that as TImmutable);
         }
 
+        /// <summary>
+        ///   Determines whether or not this instance of <typeparamref name="TImmutable" />
+        ///   is equal to <paramref name="that" /> based upon a property by property
+        ///   value comparison. If a non-String property implements
+        ///   <see cref="IEnumerable" />, the items of each instance's properties
+        ///   are compared to determine equality.
+        /// </summary>
+        /// <remarks>
+        ///   For properties that implement <see cref="IEnumerable" />, the
+        ///   the items of each enumerable are compared to determine if the
+        ///   two properties are equal. If the property also implements the
+        ///   <see cref="ISet{T}" /> interface, the order of the items is
+        ///   ignored with regard to equality. If the property does not
+        ///   implement <see cref="ISet{T}" />, order is respected.
+        /// </remarks>
+        /// <param name="that">
+        ///   An object that will be compared against this instance
+        ///   for equality based upon a property by property comparison.
+        /// </param>
+        /// <returns>
+        ///   Whether or not this instance of <typeparamref name="TImmutable" />
+        ///   is equal to <paramref name="that" />.
+        /// </returns>
         public virtual bool Equals(TImmutable that) {
             if (Object.ReferenceEquals(that, null)) {
                 return false;
