@@ -314,6 +314,15 @@ namespace Invio.Immutable {
             return true;
         }
 
+        /// <summary>
+        ///   Converts the current instance of <typeparamref name="TImmutable" />
+        ///   string using JSON-inspired formatting. Each property is a key, and
+        ///   each property value is a value.
+        /// </summary>
+        /// <returns>
+        ///   A end-user friendly string representation of the current instance as
+        ///   a bag of immutable key-value pairs.
+        /// </returns>
         public override String ToString() {
             if (!properties.Any()) {
                 return "{}";
