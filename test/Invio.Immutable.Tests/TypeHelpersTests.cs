@@ -2,11 +2,13 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using Invio.Xunit;
 using Xunit;
 
 namespace Invio.Immutable {
 
-    public class TypeHelpersTests {
+    [UnitTest]
+    public sealed class TypeHelpersTests {
 
         [Fact]
         public void IsImplementingOpenGenericInterface_NullType() {

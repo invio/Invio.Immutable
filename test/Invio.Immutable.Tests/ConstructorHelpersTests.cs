@@ -1,13 +1,15 @@
 using System;
 using System.Linq;
 using System.Reflection;
+using Invio.Xunit;
 using Xunit;
 
 using static Invio.Immutable.ConstructorHelpers;
 
 namespace Invio.Immutable {
 
-    public class ConstructorTests {
+    [UnitTest]
+    public sealed class ConstructorTests {
 
         [Fact]
         public void GetImmutableSetterConstructor_NullPropertyMap() {

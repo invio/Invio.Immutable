@@ -1,9 +1,11 @@
 using System;
+using Invio.Xunit;
 using Xunit;
 
 namespace Invio.Immutable {
 
-    public class SimpleImmutableTests {
+    [UnitTest]
+    public sealed class SimpleImmutableTests {
 
         private Random random { get; }
 

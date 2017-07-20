@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using Invio.Xunit;
 using Xunit;
 
 namespace Invio.Immutable {
 
-    public class PropertyHelpersTests {
+    [UnitTest]
+    public sealed class PropertyHelpersTests {
 
         [Fact]
         public void GetPropertyMap_Simple() {

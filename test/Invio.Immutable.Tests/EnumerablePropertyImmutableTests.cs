@@ -3,11 +3,13 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Invio.Xunit;
 using Xunit;
 
 namespace Invio.Immutable {
 
-    public class EnumerablePropertyTests {
+    [UnitTest]
+    public sealed class EnumerablePropertyTests {
 
         private static Random random { get; }
 

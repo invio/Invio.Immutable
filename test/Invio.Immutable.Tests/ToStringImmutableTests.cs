@@ -1,9 +1,11 @@
 using System;
+using Invio.Xunit;
 using Xunit;
 
 namespace Invio.Immutable {
 
-    public class ToStringImmutableTests {
+    [UnitTest]
+    public sealed class ToStringImmutableTests {
 
         [Fact]
         public void ToString_NoProperties() {
