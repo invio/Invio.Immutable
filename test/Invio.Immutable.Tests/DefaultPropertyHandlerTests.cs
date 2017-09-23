@@ -1,18 +1,28 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using System.Reflection;
-using Invio.Hashing;
 using Invio.Xunit;
 using Xunit;
 
 namespace Invio.Immutable {
 
     [UnitTest]
-    public sealed class DefaultPropertyHandlerTests {
+    public sealed class DefaultPropertyHandlerTests : PropertyHandlerTestsBase {
 
+        private static ISet<PropertyInfo> properties { get; }
         private static Random random { get; }
 
         static DefaultPropertyHandlerTests() {
+            var parent = typeof(FakeImmutable);
+
+            properties = ImmutableHashSet.Create(
+                parent.GetProperty(nameof(FakeImmutable.StringProperty)),
+                parent.GetProperty(nameof(FakeImmutable.Int32Property)),
+                parent.GetProperty(nameof(FakeImmutable.NullableDateTimeProperty))
+            );
+
             random = new Random();
         }
 
@@ -32,96 +42,6 @@ namespace Invio.Immutable {
             // Assert
 
             Assert.IsType<ArgumentNullException>(exception);
-        }
-
-        public static IEnumerable<object[]> AllPropertyNames {
-            get {
-                yield return new object[] { nameof(FakeImmutable.StringProperty) };
-                yield return new object[] { nameof(FakeImmutable.Int32Property) };
-                yield return new object[] { nameof(FakeImmutable.NullableDateTimeProperty) };
-            }
-        }
-
-        [Theory]
-        [MemberData(nameof(AllPropertyNames))]
-        public void PropertyName(String expectedPropertyName) {
-
-            // Arrange
-
-            var handler = CreateHandler(expectedPropertyName);
-
-            // Act
-
-            var actualPropertyName = handler.PropertyName;
-
-            // Assert
-
-            Assert.Equal(expectedPropertyName, actualPropertyName);
-        }
-
-        [Theory]
-        [InlineData(nameof(FakeImmutable.StringProperty), typeof(String))]
-        [InlineData(nameof(FakeImmutable.Int32Property), typeof(Int32))]
-        [InlineData(nameof(FakeImmutable.NullableDateTimeProperty), typeof(DateTime?))]
-        public void PropertyType(String propertyName, Type expectedPropertyType) {
-
-            // Arrange
-
-            var handler = CreateHandler(propertyName);
-
-            // Act
-
-            var actualPropertyType = handler.PropertyType;
-
-            // Assert
-
-            Assert.Equal(expectedPropertyType, actualPropertyType);
-        }
-
-        [Fact]
-        public void GetPropertyValueHashCode_NullParent() {
-
-            // Arrange
-
-            var handler = CreateHandler(nameof(FakeImmutable.StringProperty));
-
-            // Act
-
-            var exception = Record.Exception(
-                () => handler.GetPropertyValueHashCode(null)
-            );
-
-            // Assert
-
-            Assert.IsType<ArgumentNullException>(exception);
-        }
-
-        [Fact]
-        public void GetPropertyValueHashCode_InvalidParent() {
-
-            // Arrange
-
-            var handler = CreateHandler(nameof(FakeImmutable.StringProperty));
-            var invalidParent = new object();
-
-            // Act
-
-            var exception = Record.Exception(
-                () => handler.GetPropertyValueHashCode(invalidParent)
-            );
-
-            // Assert
-
-            Assert.Equal(
-                "The value object provided is of type Object, " +
-                "which does not contains the StringProperty property." +
-                Environment.NewLine + "Parameter name: parent",
-                exception.Message
-            );
-
-            Assert.IsType<ArgumentException>(exception);
-
-            Assert.NotNull(exception.InnerException);
         }
 
         public static IEnumerable<object[]> GetPropertyValueHashCode_NonNull_Parameters {
@@ -149,7 +69,7 @@ namespace Invio.Immutable {
 
             // Arrange
 
-            var handler = CreateHandler(propertyName);
+            var handler = this.CreateHandler(propertyName);
             var fake = NextFake().SetPropertyValue(propertyName, propertyValue);
 
             // Act
@@ -171,11 +91,11 @@ namespace Invio.Immutable {
 
             // Why 37? No particular reason, other than it's a prime number
             // which means it is less likely to match the hash code of
-            // other objects.
+            // other objects after the use of a modulus operator.
 
             const int expectedHashCode = 37;
 
-            var handler = CreateHandler(propertyName);
+            var handler = this.CreateHandler(propertyName);
             var fake = NextFake().SetPropertyValue(propertyName, null);
 
             // Act
@@ -185,62 +105,6 @@ namespace Invio.Immutable {
             // Assert
 
             Assert.Equal(expectedHashCode, actualHashCode);
-        }
-
-        [Fact]
-        public void ArePropertyValuesEqual_NullParent() {
-
-            // Arrange
-
-            var handler = CreateHandler(nameof(FakeImmutable.StringProperty));
-
-            // Act
-
-            var exception = Record.Exception(
-                () => handler.ArePropertyValuesEqual(null, null)
-            );
-
-            // Assert
-
-            Assert.IsType<ArgumentNullException>(exception);
-        }
-
-        public static IEnumerable<object[]> ArePropertyValuesEqual_InvalidParent_Parameters {
-            get {
-                yield return new object[] { NextFake(), new object(), "rightParent" };
-                yield return new object[] { new object(), NextFake(), "leftParent" };
-            }
-        }
-
-        [Theory]
-        [MemberData(nameof(ArePropertyValuesEqual_InvalidParent_Parameters))]
-        public void ArePropertyValuesEqual_InvalidParent(
-            Object leftParent,
-            Object rightParent,
-            String parameterName) {
-
-            // Arrange
-
-            var handler = CreateHandler(nameof(FakeImmutable.StringProperty));
-
-            // Act
-
-            var exception = Record.Exception(
-                () => handler.ArePropertyValuesEqual(leftParent, rightParent)
-            );
-
-            // Assert
-
-            Assert.Equal(
-                "The value object provided is of type Object, " +
-                "which does not contains the StringProperty property." +
-                Environment.NewLine + "Parameter name: " + parameterName,
-                exception.Message
-            );
-
-            Assert.IsType<ArgumentException>(exception);
-
-            Assert.NotNull(exception.InnerException);
         }
 
         public static IEnumerable<object[]> PropertyValues_NonNullParameters {
@@ -268,7 +132,7 @@ namespace Invio.Immutable {
 
             // Arrange
 
-            var handler = CreateHandler(propertyName);
+            var handler = this.CreateHandler(propertyName);
 
             var original = NextFake();
             var withNewValue = original.SetPropertyValue(propertyName, propertyValue);
@@ -291,7 +155,7 @@ namespace Invio.Immutable {
 
             // Arrange
 
-            var handler = CreateHandler(propertyName);
+            var handler = this.CreateHandler(propertyName);
 
             var original = NextFake();
             var withNull = original.SetPropertyValue(propertyName, null);
@@ -307,52 +171,6 @@ namespace Invio.Immutable {
             Assert.True(isEqualWithBothNull);
             Assert.False(isEqualWithOnlyLeftNull);
             Assert.False(isEqualWithOnlyRightNull);
-        }
-
-        [Fact]
-        public void GetPropertyValue_NullParent() {
-
-            // Arrange
-
-            var handler = CreateHandler(nameof(FakeImmutable.StringProperty));
-
-            // Act
-
-            var exception = Record.Exception(
-                () => handler.GetPropertyValue(null)
-            );
-
-            // Assert
-
-            Assert.IsType<ArgumentNullException>(exception);
-        }
-
-        [Fact]
-        public void GetPropertyValue_InvalidParent() {
-
-            // Arrange
-
-            var handler = CreateHandler(nameof(FakeImmutable.StringProperty));
-            var invalidParent = new object();
-
-            // Act
-
-            var exception = Record.Exception(
-                () => handler.GetPropertyValue(invalidParent)
-            );
-
-            // Assert
-
-            Assert.Equal(
-                "The value object provided is of type Object, " +
-                "which does not contains the StringProperty property." +
-                Environment.NewLine + "Parameter name: parent",
-                exception.Message
-            );
-
-            Assert.IsType<ArgumentException>(exception);
-
-            Assert.NotNull(exception.InnerException);
         }
 
         public static IEnumerable<object[]> GetPropertyValue_Parameters {
@@ -386,7 +204,7 @@ namespace Invio.Immutable {
 
             // Arrange
 
-            var handler = CreateHandler(propertyName);
+            var handler = this.CreateHandler(propertyName);
             var parent = NextFake().SetPropertyValue(propertyName, expectedValue);
 
             // Act
@@ -398,52 +216,6 @@ namespace Invio.Immutable {
             Assert.Equal(expectedValue, actualValue);
         }
 
-        [Fact]
-        public void GetPropertyValueDisplayString_NullParent() {
-
-            // Arrange
-
-            var handler = CreateHandler(nameof(FakeImmutable.StringProperty));
-
-            // Act
-
-            var exception = Record.Exception(
-                () => handler.GetPropertyValueDisplayString(null)
-            );
-
-            // Assert
-
-            Assert.IsType<ArgumentNullException>(exception);
-        }
-
-        [Fact]
-        public void GetPropertyValueDisplayString_InvalidParent() {
-
-            // Arrange
-
-            var handler = CreateHandler(nameof(FakeImmutable.StringProperty));
-            var invalidParent = new object();
-
-            // Act
-
-            var exception = Record.Exception(
-                () => handler.GetPropertyValueDisplayString(invalidParent)
-            );
-
-            // Assert
-
-            Assert.Equal(
-                "The value object provided is of type Object, " +
-                "which does not contains the StringProperty property." +
-                Environment.NewLine + "Parameter name: parent",
-                exception.Message
-            );
-
-            Assert.IsType<ArgumentException>(exception);
-
-            Assert.NotNull(exception.InnerException);
-        }
-
         [Theory]
         [MemberData(nameof(PropertyValues_NonNullParameters))]
         public void GetPropertyValueDisplayString_NonNullValues(
@@ -452,7 +224,7 @@ namespace Invio.Immutable {
 
             // Arrange
 
-            var handler = CreateHandler(propertyName);
+            var handler = this.CreateHandler(propertyName);
             var parent = NextFake().SetPropertyValue(propertyName, propertyValue);
             var expectedString = propertyValue.ToString();
 
@@ -474,7 +246,7 @@ namespace Invio.Immutable {
 
             const string expectedString = "null";
 
-            var handler = CreateHandler(propertyName);
+            var handler = this.CreateHandler(propertyName);
             var parent = NextFake().SetPropertyValue(propertyName, null);
 
             // Act
@@ -486,10 +258,25 @@ namespace Invio.Immutable {
             Assert.Equal(expectedString, actualString);
         }
 
-        private static IPropertyHandler CreateHandler(String propertyName) {
+        protected override PropertyInfo NextValidPropertyInfo() {
+            return
+                properties
+                    .Skip(random.Next(0, properties.Count))
+                    .First();
+        }
+
+        protected override object NextParent() {
+            return NextFake();
+        }
+
+        protected override IPropertyHandler CreateHandler(PropertyInfo property) {
+            return new DefaultPropertyHandler(property);
+        }
+
+        private IPropertyHandler CreateHandler(String propertyName) {
             var property = typeof(FakeImmutable).GetProperty(propertyName);
 
-            return new DefaultPropertyHandler(property);
+            return this.CreateHandler(property);
         }
 
         private static FakeImmutable NextFake() {
