@@ -53,7 +53,9 @@ namespace Invio.Immutable {
                 throw new ArgumentNullException(nameof(property));
             } else if (!property.PropertyType.IsDerivativeOf(typeof(TProperty))) {
                 throw new ArgumentException(
-
+                    $"The '{property.Name}' property is not of type " +
+                    $"'{typeof(TProperty).GetNameWithGenericParameters()}'.",
+                    nameof(property)
                 );
             }
 
