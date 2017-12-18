@@ -18,7 +18,7 @@ namespace Invio.Immutable {
 
             // Assert
 
-            Assert.Equal(propertyMap.Count, 2);
+            Assert.Equal(2, propertyMap.Count);
             AssertContainsProperty(propertyMap, nameof(Simple.Foo));
             AssertContainsProperty(propertyMap, nameof(Simple.Bar));
         }
@@ -44,7 +44,7 @@ namespace Invio.Immutable {
 
             // Assert
 
-            Assert.Equal(propertyMap.Count, 1);
+            Assert.Equal(1, propertyMap.Count);
             AssertContainsProperty(propertyMap, nameof(PrivateGetter.Foo));
         }
 
@@ -69,7 +69,7 @@ namespace Invio.Immutable {
 
             // Assert
 
-            Assert.Equal(propertyMap.Count, 1);
+            Assert.Equal(1, propertyMap.Count);
             AssertContainsProperty(propertyMap, nameof(ExclusiveSetter.Foo));
         }
 

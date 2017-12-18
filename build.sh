@@ -11,6 +11,6 @@ fi
 
 dotnet restore
 
-dotnet test ./test/Invio.Immutable.Tests/Invio.Immutable.Tests.csproj -c Release -f netcoreapp1.0
+dotnet test ./test/Invio.Immutable.Tests/Invio.Immutable.Tests.csproj -c Release
 
 dotnet pack -c Release -o ../../artifacts

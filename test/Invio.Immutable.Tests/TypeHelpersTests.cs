@@ -122,19 +122,16 @@ namespace Invio.Immutable {
             );
         }
 
-        public static IEnumerable<object> ValidCheckArguments {
-            get {
-                return new List<object> {
-                    new object[] { typeof(IEnumerable<>), typeof(IEnumerable<>) },
-                    new object[] { typeof(IEnumerable<object>), typeof(IEnumerable<>) },
-                    new object[] { typeof(IList<object>), typeof(IEnumerable<>) },
-                    new object[] { typeof(IList<object>), typeof(IList<>) },
-                    new object[] { typeof(HashSet<string>), typeof(IEnumerable<>) },
-                    new object[] { typeof(HashSet<string>), typeof(ISet<>) },
-                    new object[] { typeof(List<string>), typeof(IList<>) }
-                };
-            }
-        }
+        public static IEnumerable<object[]> ValidCheckArguments { get; } =
+            ImmutableList.Create<object[]>(
+                new object[] { typeof(IEnumerable<>), typeof(IEnumerable<>) },
+                new object[] { typeof(IEnumerable<object>), typeof(IEnumerable<>) },
+                new object[] { typeof(IList<object>), typeof(IEnumerable<>) },
+                new object[] { typeof(IList<object>), typeof(IList<>) },
+                new object[] { typeof(HashSet<string>), typeof(IEnumerable<>) },
+                new object[] { typeof(HashSet<string>), typeof(ISet<>) },
+                new object[] { typeof(List<string>), typeof(IList<>) }
+            );
 
         [Theory]
         [MemberData(nameof(ValidCheckArguments))]
@@ -151,16 +148,13 @@ namespace Invio.Immutable {
             Assert.True(result);
         }
 
-        public static IEnumerable<object> InvalidCheckArguments {
-            get {
-                return new List<object> {
-                    new object[] { typeof(IEnumerable<object>), typeof(IList<>) },
-                    new object[] { typeof(HashSet<object>), typeof(IList<>) },
-                    new object[] { typeof(List<string>), typeof(ISet<>) },
-                    new object[] { typeof(LinkedList<object>), typeof(ISet<>) }
-                };
-            }
-        }
+        public static IEnumerable<object[]> InvalidCheckArguments { get; } =
+            ImmutableList.Create<object[]>(
+                new object[] { typeof(IEnumerable<object>), typeof(IList<>) },
+                new object[] { typeof(HashSet<object>), typeof(IList<>) },
+                new object[] { typeof(List<string>), typeof(ISet<>) },
+                new object[] { typeof(LinkedList<object>), typeof(ISet<>) }
+            );
 
         [Theory]
         [MemberData(nameof(InvalidCheckArguments))]
@@ -219,36 +213,33 @@ namespace Invio.Immutable {
             );
         }
 
-        public static IEnumerable<object> SetEqualArguments {
-            get {
-                return new List<object> {
-                    new object[] {
-                        new HashSet<String> { "foo", "foo", "foo" },
-                        new HashSet<String> { "foo", "foo" }
-                    },
-                    new object[] {
-                        new HashSet<String> { "foo", null },
-                        new HashSet<String> { null, "foo", "foo" }
-                    },
-                    new object[] {
-                        new HashSet<String> { "foo", "bar", "foo" },
-                        new HashSet<String> { "bar", "foo", "bar" }
-                    },
-                    new object[] {
-                        new HashSet<Object> { "foo" },
-                        new HashSet<Object> { "foo" }
-                    },
-                    new object[] {
-                        new HashSet<Object> { null, null },
-                        new HashSet<Object> { null, null, null }
-                    },
-                    new object[] {
-                        new HashSet<DateTime> { DateTime.MinValue },
-                        new HashSet<DateTime> { DateTime.MinValue }
-                    }
-                };
-            }
-        }
+        public static IEnumerable<object[]> SetEqualArguments { get; } =
+            ImmutableList.Create<object[]>(
+                new object[] {
+                    new HashSet<String> { "foo", "foo", "foo" },
+                    new HashSet<String> { "foo", "foo" }
+                },
+                new object[] {
+                    new HashSet<String> { "foo", null },
+                    new HashSet<String> { null, "foo", "foo" }
+                },
+                new object[] {
+                    new HashSet<String> { "foo", "bar", "foo" },
+                    new HashSet<String> { "bar", "foo", "bar" }
+                },
+                new object[] {
+                    new HashSet<Object> { "foo" },
+                    new HashSet<Object> { "foo" }
+                },
+                new object[] {
+                    new HashSet<Object> { null, null },
+                    new HashSet<Object> { null, null, null }
+                },
+                new object[] {
+                    new HashSet<DateTime> { DateTime.MinValue },
+                    new HashSet<DateTime> { DateTime.MinValue }
+                }
+            );
 
         [Theory]
         [MemberData(nameof(SetEqualArguments))]
@@ -285,32 +276,29 @@ namespace Invio.Immutable {
             Assert.True(areEqual);
         }
 
-        public static IEnumerable<object> SetNotEqualArguments {
-            get {
-                return new List<object> {
-                    new object[] {
-                        new HashSet<String> { "foo", "bar", "foo" },
-                        new HashSet<String> { "bar", "foo", "biz" }
-                    },
-                    new object[] {
-                        new HashSet<Object> { "foo" },
-                        new HashSet<Object> { "FOO" }
-                    },
-                    new object[] {
-                        new HashSet<Object> { null },
-                        new HashSet<Object> { "FOO" }
-                    },
-                    new object[] {
-                        new HashSet<Object> { "foo" },
-                        new HashSet<Object> { null }
-                    },
-                    new object[] {
-                        new HashSet<DateTime> { DateTime.MinValue },
-                        new HashSet<DateTime> { DateTime.MaxValue }
-                    }
-                };
-            }
-        }
+        public static IEnumerable<object[]> SetNotEqualArguments { get; } =
+            ImmutableList.Create<object[]>(
+                new object[] {
+                    new HashSet<String> { "foo", "bar", "foo" },
+                    new HashSet<String> { "bar", "foo", "biz" }
+                },
+                new object[] {
+                    new HashSet<Object> { "foo" },
+                    new HashSet<Object> { "FOO" }
+                },
+                new object[] {
+                    new HashSet<Object> { null },
+                    new HashSet<Object> { "FOO" }
+                },
+                new object[] {
+                    new HashSet<Object> { "foo" },
+                    new HashSet<Object> { null }
+                },
+                new object[] {
+                    new HashSet<DateTime> { DateTime.MinValue },
+                    new HashSet<DateTime> { DateTime.MaxValue }
+                }
+            );
 
         [Theory]
         [MemberData(nameof(SetNotEqualArguments))]
@@ -393,32 +381,29 @@ namespace Invio.Immutable {
             );
         }
 
-        public static IEnumerable<object> EnumerableEqualArguments {
-            get {
-                return new List<object> {
-                    new object[] {
-                        new List<String> { "foo", "foo" },
-                        new List<String> { "foo", "foo" }
-                    },
-                    new object[] {
-                        new List<String> { "foo", "bar" },
-                        new List<String> { "foo", "bar" }
-                    },
-                    new object[] {
-                        new Object[] { "foo" },
-                        new Object[] { "foo" }
-                    },
-                    new object[] {
-                        new Object[] { null },
-                        new Object[] { null }
-                    },
-                    new object[] {
-                        ImmutableList.Create<DateTime>(DateTime.MinValue),
-                        ImmutableList.Create<DateTime>(DateTime.MinValue)
-                    }
-                };
-            }
-        }
+        public static IEnumerable<object[]> EnumerableEqualArguments { get; } =
+            ImmutableList.Create<object[]>(
+                new object[] {
+                    new List<String> { "foo", "foo" },
+                    new List<String> { "foo", "foo" }
+                },
+                new object[] {
+                    new List<String> { "foo", "bar" },
+                    new List<String> { "foo", "bar" }
+                },
+                new object[] {
+                    new Object[] { "foo" },
+                    new Object[] { "foo" }
+                },
+                new object[] {
+                    new Object[] { null },
+                    new Object[] { null }
+                },
+                new object[] {
+                    ImmutableList.Create<DateTime>(DateTime.MinValue),
+                    ImmutableList.Create<DateTime>(DateTime.MinValue)
+                }
+            );
 
         [Theory]
         [MemberData(nameof(EnumerableEqualArguments))]
@@ -457,32 +442,29 @@ namespace Invio.Immutable {
             Assert.True(areEqual);
         }
 
-        public static IEnumerable<object> EnumerableNotEqualArguments {
-            get {
-                return new List<object> {
-                    new object[] {
-                        new List<String> { "foo", "bar" },
-                        new List<String> { "bar", "foo" }
-                    },
-                    new object[] {
-                        new Object[] { new Object() },
-                        new Object[] { new Object() }
-                    },
-                    new object[] {
-                        new Object[] { null },
-                        new Object[] { new Object() }
-                    },
-                    new object[] {
-                        new Object[] { new Object() },
-                        new Object[] { null }
-                    },
-                    new object[] {
-                        ImmutableList.Create<DateTime>(DateTime.MinValue, DateTime.MinValue),
-                        ImmutableList.Create<DateTime>(DateTime.MinValue)
-                    }
-                };
-            }
-        }
+        public static IEnumerable<object[]> EnumerableNotEqualArguments { get; } =
+            ImmutableList.Create<object[]>(
+                new object[] {
+                    new List<String> { "foo", "bar" },
+                    new List<String> { "bar", "foo" }
+                },
+                new object[] {
+                    new Object[] { new Object() },
+                    new Object[] { new Object() }
+                },
+                new object[] {
+                    new Object[] { null },
+                    new Object[] { new Object() }
+                },
+                new object[] {
+                    new Object[] { new Object() },
+                    new Object[] { null }
+                },
+                new object[] {
+                    ImmutableList.Create<DateTime>(DateTime.MinValue, DateTime.MinValue),
+                    ImmutableList.Create<DateTime>(DateTime.MinValue)
+                }
+            );
 
         [Theory]
         [MemberData(nameof(EnumerableNotEqualArguments))]

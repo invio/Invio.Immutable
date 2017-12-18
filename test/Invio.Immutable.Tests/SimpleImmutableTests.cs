@@ -91,15 +91,50 @@ namespace Invio.Immutable {
         }
 
         [Fact]
-        public void Inequality_Null() {
+        public void Inequality_NullObject() {
 
             // Arrange
 
             var fake = this.NextFake();
+            object other = null;
 
             // Act
 
-            var isEqual = fake.Equals(null);
+            var isEqual = fake.Equals(other);
+
+            // Assert
+
+            Assert.False(isEqual);
+        }
+
+        [Fact]
+        public void Inequality_NonNullObject() {
+
+            // Arrange
+
+            var fake = this.NextFake();
+            var other = new object();
+
+            // Act
+
+            var isEqual = fake.Equals(other);
+
+            // Assert
+
+            Assert.False(isEqual);
+        }
+
+        [Fact]
+        public void Inequality_Null_MatchingImmutableType() {
+
+            // Arrange
+
+            var fake = this.NextFake();
+            SimpleImmutableFake other = null;
+
+            // Act
+
+            var isEqual = fake.Equals(other);
 
             // Assert
 
