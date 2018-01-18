@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <AssemblyTitle>C# Library used to ease immutable class creation and data management</AssemblyTitle>
-    <VersionPrefix>0.3.3</VersionPrefix>
+    <VersionPrefix>0.3.4</VersionPrefix>
     <Authors>Invio Inc. &lt;developers@invioinc.com&gt;</Authors>
     <TargetFramework>netstandard1.3</TargetFramework>
     <DebugType>portable</DebugType>
