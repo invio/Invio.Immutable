@@ -64,7 +64,7 @@ namespace Invio.Immutable {
                 Func<object, object, bool> areEqual;
                 Func<object, object> getHashCodeValue;
 
-                if (type.IsImplementingOpenGenericInterface(typeof(ISet<>))) {
+                if (type.IsDerivativeOf(typeof(ISet<>))) {
                     areEqual = type.CreateSetEqualsFunc();
                     getHashCodeValue =
                         (instance) => HashCode.FromSet((IEnumerable)getter(instance));
