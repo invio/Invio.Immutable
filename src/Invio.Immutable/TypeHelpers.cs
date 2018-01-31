@@ -1,7 +1,7 @@
 using System;
 using System.Collections;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
 using Invio.Extensions.Reflection;
@@ -13,7 +13,9 @@ namespace Invio.Immutable {
         internal static Func<object, object, bool> CreateSetEqualsFunc(this Type type) {
             if (type == null) {
                 throw new ArgumentNullException(nameof(type));
-            } else if (!type.IsDerivativeOf(typeof(ISet<>))) {
+            } else if (!type.IsDerivativeOf(typeof(ISet<>)) &&
+                       !type.IsDerivativeOf(typeof(IImmutableSet<>))) {
+
                 throw new ArgumentException(
                     $"The '{nameof(type)}' provided does not implement ISet<>.",
                     nameof(type)

@@ -56,38 +56,57 @@ namespace Invio.Immutable {
         public static IEnumerable<object[]> SetEqualArguments { get; } =
             ImmutableList.Create<object[]>(
                 new object[] {
-                    new HashSet<String> { "foo", "foo", "foo" },
-                    new HashSet<String> { "foo", "foo" }
+                    ImmutableHashSet.Create(new string[] { "foo", "foo", "foo" }),
+                    ImmutableHashSet.Create(new string[] { "foo", "foo" })
                 },
                 new object[] {
-                    new HashSet<String> { "foo", null },
-                    new HashSet<String> { null, "foo", "foo" }
+                    ImmutableHashSet.Create(new string[] { "foo", null }),
+                    ImmutableHashSet.Create(new string[] { null, "foo", "foo" })
                 },
                 new object[] {
-                    new HashSet<String> { "foo", "bar", "foo" },
-                    new HashSet<String> { "bar", "foo", "bar" }
+                    ImmutableHashSet.Create(new string[] { "foo", "bar", "foo" }),
+                    ImmutableHashSet.Create(new string[] { "bar", "foo", "bar" })
                 },
                 new object[] {
-                    new HashSet<Object> { "foo" },
-                    new HashSet<Object> { "foo" }
+                    ImmutableHashSet.Create(new string[] { "foo" }),
+                    ImmutableHashSet.Create(new string[] { "foo" })
                 },
                 new object[] {
-                    new HashSet<Object> { null, null },
-                    new HashSet<Object> { null, null, null }
+                    ImmutableHashSet.Create(new object[] { null, null }),
+                    ImmutableHashSet.Create(new object[] { null, null, null })
                 },
                 new object[] {
-                    new HashSet<DateTime> { DateTime.MinValue },
-                    new HashSet<DateTime> { DateTime.MinValue }
+                    ImmutableHashSet.Create(new DateTime[] { DateTime.MinValue }),
+                    ImmutableHashSet.Create(new DateTime[] { DateTime.MinValue })
                 }
             );
 
         [Theory]
         [MemberData(nameof(SetEqualArguments))]
-        public void CreateSetEqualsFunc_Equal<T>(ISet<T> left, ISet<T> right) {
+        public void CreateSetEqualsFunc_MutableSet_Equal<T>(ISet<T> left, ISet<T> right) {
 
             // Arrange
 
             var type = typeof(ISet<T>);
+
+            // Act
+
+            var func = type.CreateSetEqualsFunc();
+            var areEqual = func(left, right);
+
+            // Assert
+
+            Assert.True(areEqual);
+        }
+
+        [Theory]
+        [MemberData(nameof(SetEqualArguments))]
+        public void CreateSetEqualsFunc_ImmutableSet_Equal<T>(
+            IImmutableSet<T> left, IImmutableSet<T> right) {
+
+            // Arrange
+
+            var type = typeof(IImmutableSet<T>);
 
             // Act
 
@@ -119,34 +138,54 @@ namespace Invio.Immutable {
         public static IEnumerable<object[]> SetNotEqualArguments { get; } =
             ImmutableList.Create<object[]>(
                 new object[] {
-                    new HashSet<String> { "foo", "bar", "foo" },
-                    new HashSet<String> { "bar", "foo", "biz" }
+                    ImmutableHashSet.Create(new string[] { "foo", "bar", "foo" }),
+                    ImmutableHashSet.Create(new string[] { "bar", "foo", "biz" })
                 },
                 new object[] {
-                    new HashSet<Object> { "foo" },
-                    new HashSet<Object> { "FOO" }
+                    ImmutableHashSet.Create(new string[] { "foo" }),
+                    ImmutableHashSet.Create(new string[] { "FOO" })
                 },
                 new object[] {
-                    new HashSet<Object> { null },
-                    new HashSet<Object> { "FOO" }
+                    ImmutableHashSet.Create(new string[] { null }),
+                    ImmutableHashSet.Create(new string[] { "FOO" })
                 },
                 new object[] {
-                    new HashSet<Object> { "foo" },
-                    new HashSet<Object> { null }
+                    ImmutableHashSet.Create(new string[] { "foo" }),
+                    ImmutableHashSet.Create(new string[] { null })
                 },
                 new object[] {
-                    new HashSet<DateTime> { DateTime.MinValue },
-                    new HashSet<DateTime> { DateTime.MaxValue }
+                    ImmutableHashSet.Create(DateTime.MinValue),
+                    ImmutableHashSet.Create(DateTime.MaxValue)
                 }
             );
 
         [Theory]
         [MemberData(nameof(SetNotEqualArguments))]
-        public void CreateSetEqualsFunc_NotEqual<T>(ISet<T> left, ISet<T> right) {
+        public void CreateSetEqualsFunc_MutableSet_NotEqual<T>(ISet<T> left, ISet<T> right) {
 
             // Arrange
 
             var type = typeof(ISet<T>);
+
+            // Act
+
+            var func = type.CreateSetEqualsFunc();
+            var areEqual = func(left, right);
+
+            // Assert
+
+            Assert.False(areEqual);
+        }
+
+        [Theory]
+        [MemberData(nameof(SetNotEqualArguments))]
+        public void CreateSetEqualsFunc_ImmutableSet_NotEqual<T>(
+            IImmutableSet<T> left,
+            IImmutableSet<T> right) {
+
+            // Arrange
+
+            var type = typeof(IImmutableSet<T>);
 
             // Act
 

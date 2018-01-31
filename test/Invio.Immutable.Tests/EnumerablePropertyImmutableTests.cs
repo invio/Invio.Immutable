@@ -182,12 +182,57 @@ namespace Invio.Immutable {
             AssertImmutablesEqual(nulled, nonNulled.SetSet(null));
         }
 
+        [Fact]
+        public void Equality_ImmutableSet_NonNull() {
+
+            // Arrange
+
+            var fake = this.NextFakeWithEnumerables();
+
+            var originalLeftSet = ImmutableHashSet.Create(-1, 2, -1);
+            var matchingLeftSet = ImmutableHashSet.Create(2, -1, 2);;
+
+            var originalRightSet = ImmutableHashSet.Create(-1);
+            var matchingRightSet = ImmutableHashSet.Create(-1, -1, -1);
+
+            // Act
+
+            var left = fake.SetImmutableSet(originalLeftSet);
+            var right = fake.SetImmutableSet(originalRightSet);
+
+            // Assert
+
+            AssertImmutablesNotEqual(left, right);
+            AssertImmutablesEqual(left, right.SetImmutableSet(matchingLeftSet));
+            AssertImmutablesEqual(left.SetImmutableSet(matchingRightSet), right);
+        }
+
+        [Fact]
+        public void Equality_ImmutableSet_WithNull() {
+
+            // Arrange
+
+            var fake = this.NextFakeWithEnumerables();
+            var immutableSet = ImmutableHashSet.Create(-1, 2, -1);
+
+            // Act
+
+            var nonNulled = fake.SetImmutableSet(immutableSet);
+            var nulled = fake.SetImmutableSet(null);
+
+            // Assert
+
+            AssertImmutablesNotEqual(nonNulled, nulled);
+            AssertImmutablesEqual(nulled, nonNulled.SetImmutableSet(null));
+        }
+
         private FakeWithEnumerables NextFakeWithEnumerables() {
             return new FakeWithEnumerables(
                 NextList(),
                 NextList(),
                 NextList(),
-                NextList().ToImmutableHashSet()
+                NextList().ToImmutableHashSet(),
+                NextList().Select(str => str.Length).ToImmutableHashSet()
             );
         }
 
@@ -205,17 +250,20 @@ namespace Invio.Immutable {
             public IEnumerable<String> Typed { get; }
             public IList<String> List { get; }
             public ISet<String> Set { get; }
+            public IImmutableSet<int> ImmutableSet { get; }
 
             public FakeWithEnumerables(
                 IEnumerable untyped,
                 IEnumerable<String> typed,
                 IList<String> list,
-                ISet<String> @set) {
+                ISet<String> @set,
+                IImmutableSet<int> immutableSet) {
 
                 this.Untyped = untyped;
                 this.Typed = typed;
                 this.List = list;
                 this.Set = @set;
+                this.ImmutableSet = immutableSet;
             }
 
             public FakeWithEnumerables SetUntyped(IEnumerable untyped) {
@@ -232,6 +280,10 @@ namespace Invio.Immutable {
 
             public FakeWithEnumerables SetSet(ISet<String> @set) {
                 return this.SetPropertyValueImpl(nameof(Set), @set);
+            }
+
+            public FakeWithEnumerables SetImmutableSet(IImmutableSet<int> immutableSet) {
+                return this.SetPropertyValueImpl(nameof(ImmutableSet), immutableSet);
             }
 
         }
