@@ -22,11 +22,8 @@ namespace Invio.Immutable {
         where TImmutable : ImmutableBase<TImmutable> {
 
         private static Func<object[], TImmutable> createImmutable { get; }
-        private static ImmutableArray<PropertyInfo> properties { get; }
-        private static ImmutableArray<Func<Object, Object>> getters { get; }
-        private static ImmutableDictionary<String, Func<Object, Object>> gettersByName { get; }
-        private static ImmutableArray<Func<Object, Object>> getHashCodeValues { get; }
-        private static ImmutableArray<Func<Object, Object, bool>> areEqualFuncs { get; }
+        private static ImmutableArray<IPropertyHandler> handlers { get; }
+        private static ImmutableDictionary<String, IPropertyHandler> handlersByName { get; }
 
         static ImmutableBase() {
             var propertiesByName = PropertyHelpers.GetPropertyMap<TImmutable>();
@@ -37,55 +34,40 @@ namespace Invio.Immutable {
 
             createImmutable = constructor.CreateArrayFunc<TImmutable>();
 
-            properties =
+            var properties =
                 constructor
                     .GetParameters()
                     .Select(parameter => propertiesByName[parameter.Name])
                     .ToImmutableArray();
 
-            getters =
-                properties
-                    .Select(property => property.CreateGetter())
-                    .ToImmutableArray();
-
-            gettersByName =
-                properties.ToImmutableDictionary(
-                    property => property.Name,
-                    property => property.CreateGetter()
-                );
-
-            var getHashCodeValuesBuilder = ImmutableArray.CreateBuilder<Func<Object, Object>>();
-            var areEqualFuncsBuilder = ImmutableArray.CreateBuilder<Func<Object, Object, bool>>();
+            var handlersBuilder = ImmutableArray.CreateBuilder<IPropertyHandler>();
+            var handlersByNameBuilder =
+                ImmutableDictionary.CreateBuilder<String, IPropertyHandler>();
 
             foreach (var property in properties) {
                 var type = property.PropertyType;
-                var getter = gettersByName[property.Name];
 
-                Func<object, object, bool> areEqual;
-                Func<object, object> getHashCodeValue;
+                IPropertyHandler handler;
 
-                if (type.IsDerivativeOf(typeof(ISet<>)) ||
-                    type.IsDerivativeOf(typeof(IImmutableSet<>))) {
-
-                    areEqual = type.CreateSetEqualsFunc();
-                    getHashCodeValue =
-                        (instance) => HashCode.FromSet((IEnumerable)getter(instance));
-                } else if (type != typeof(String) &&
-                           type.GetInterfaces().Contains(typeof(IEnumerable))) {
-                    areEqual = type.CreateEnumerableEqualsFunc();
-                    getHashCodeValue =
-                        (instance) => HashCode.FromList((IEnumerable)getter(instance));
+                if (type == typeof(String)) {
+                    handler = new StringPropertyHandler(property);
+                } else if (type.IsDerivativeOf(typeof(ISet<>)) ||
+                           type.IsDerivativeOf(typeof(IImmutableSet<>))) {
+                    handler = new SetPropertyHandler(property);
+                } else if (type.IsDerivativeOf(typeof(IEnumerable))) {
+                    handler = new ListPropertyHandler(property);
+                } else if (type == typeof(DateTime) || type == typeof(DateTime?)) {
+                    handler = new DateTimePropertyHandler(property);
                 } else {
-                    areEqual = (left, right) => left.Equals(right);
-                    getHashCodeValue = getter;
+                    handler = new DefaultPropertyHandler(property);
                 }
 
-                getHashCodeValuesBuilder.Add(getHashCodeValue);
-                areEqualFuncsBuilder.Add(areEqual);
+                handlersBuilder.Add(handler);
+                handlersByNameBuilder.Add(handler.PropertyName, handler);
             }
 
-            getHashCodeValues = getHashCodeValuesBuilder.ToImmutable();
-            areEqualFuncs = areEqualFuncsBuilder.ToImmutable();
+            handlers = handlersBuilder.ToImmutable();
+            handlersByName = handlersByNameBuilder.ToImmutable();
         }
 
         /// <summary>
@@ -120,16 +102,16 @@ namespace Invio.Immutable {
                 throw new ArgumentNullException(nameof(propertyName));
             }
 
-            Func<object, object> getter;
+            IPropertyHandler handler;
 
-            if (!gettersByName.TryGetValue(propertyName, out getter)) {
+            if (!handlersByName.TryGetValue(propertyName, out handler)) {
                 throw new ArgumentException(
                     $"The '{propertyName}' property was not found.",
                     nameof(propertyName)
                 );
             }
 
-            return getter(this);
+            return handler.GetPropertyValue(this);
         }
 
         /// <summary>
@@ -182,13 +164,13 @@ namespace Invio.Immutable {
             }
 
             var isPropertyFound = false;
-            var values = new object[properties.Length];
+            var values = new object[handlers.Length];
 
             for (var index = 0; index < values.Length; index++) {
-                var property = properties[index];
+                var handler = handlers[index];
 
-                if (property.Name.Equals(propertyName)) {
-                    if (!IsAssignable(property.PropertyType, value)) {
+                if (handler.PropertyName.Equals(propertyName)) {
+                    if (!IsAssignable(handler.PropertyType, value)) {
                         var formattedValue = value?.ToString() ?? "null";
 
                         throw new ArgumentException(
@@ -201,7 +183,7 @@ namespace Invio.Immutable {
                     isPropertyFound = true;
                     values[index] = value;
                 } else {
-                    values[index] = getters[index](this);
+                    values[index] = handler.GetPropertyValue(this);
                 }
             }
 
@@ -244,7 +226,11 @@ namespace Invio.Immutable {
         ///   publically accessibly properties.
         /// </returns>
         public override int GetHashCode() {
-            return HashCode.From(getHashCodeValues.Select(getter => getter(this)));
+            return HashCode.From(
+                handlers
+                    .Select(handler => handler.GetPropertyValueHashCode(this))
+                    .Cast<object>()
+            );
         }
 
         /// <summary>
@@ -299,16 +285,8 @@ namespace Invio.Immutable {
                 return true;
             }
 
-            for (var index = 0; index < getters.Length; index++) {
-                var thisValue = getters[index](this);
-                var thatValue = getters[index](that);
-                var areEqual = areEqualFuncs[index];
-
-                if (Object.ReferenceEquals(thisValue, null)) {
-                    if (!Object.ReferenceEquals(thatValue, null)) {
-                        return false;
-                    }
-                } else if (!areEqual(thisValue, thatValue)) {
+            foreach (var handler in handlers) {
+                if (!handler.ArePropertyValuesEqual(this, that)) {
                     return false;
                 }
             }
@@ -322,21 +300,21 @@ namespace Invio.Immutable {
         ///   each property value is a value.
         /// </summary>
         /// <returns>
-        ///   A end-user friendly string representation of the current instance as
+        ///   An end-user friendly string representation of the current instance as
         ///   a bag of immutable key-value pairs.
         /// </returns>
         public override String ToString() {
-            if (!properties.Any()) {
+            if (handlers.IsEmpty) {
                 return "{}";
             }
 
             var output = new StringBuilder("{ ");
 
-            output.Append(ToString(properties.First()));
+            output.Append(this.GetHandlerDisplayString(handlers.First()));
 
-            foreach (var property in properties.Skip(1)) {
+            foreach (var handler in handlers.Skip(1)) {
                 output.Append(", ");
-                output.Append(ToString(property));
+                output.Append(this.GetHandlerDisplayString(handler));
             }
 
             output.Append(" }");
@@ -344,22 +322,8 @@ namespace Invio.Immutable {
             return output.ToString();
         }
 
-        private String ToString(PropertyInfo property) {
-            var value = this.GetPropertyValueImpl(property.Name);
-
-            if (value == null) {
-                return $"{property.Name}: null";
-            }
-
-            var propertyType =
-                Nullable.GetUnderlyingType(property.PropertyType) ??
-                property.PropertyType;
-
-            if (propertyType == typeof(DateTime)) {
-                return $"{property.Name}: {((DateTime)value):o}";
-            }
-
-            return $"{property.Name}: {value}";
+        private String GetHandlerDisplayString(IPropertyHandler handler) {
+            return $"{handler.PropertyName}: {handler.GetPropertyValueDisplayString(this)}";
         }
 
     }

@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using Invio.Xunit;
 using Xunit;
 
@@ -24,23 +26,6 @@ namespace Invio.Immutable {
         }
 
         [Fact]
-        public void ToString_OneProperty_DateTime() {
-
-            // Arrange
-
-            var timestamp = new DateTime(2016, 1, 1);
-            var dated = new OneProperty<DateTime>(timestamp);
-
-            // Act
-
-            var output = dated.ToString();
-
-            // Assert
-
-            Assert.Equal("{ Property: 2016-01-01T00:00:00.0000000 }", output);
-        }
-
-        [Fact]
         public void ToString_OneProperty_Null() {
 
             // Arrange
@@ -56,11 +41,17 @@ namespace Invio.Immutable {
             Assert.Equal("{ Property: null }", output);
         }
 
+        public static IEnumerable<object[]> ToString_OneProperty_MemberData { get;} =
+            ImmutableList.Create<object[]>(
+                new object[] { 42, 42.ToString() },
+                new object[] { 42.2, 42.2.ToString() },
+                new object[] { "foo", "\"foo\"" },
+                new object[] { new DateTime(2016, 1, 1), "2016-01-01T00:00:00.0000000" }
+            );
+
         [Theory]
-        [InlineData(42)]
-        [InlineData(42.2)]
-        [InlineData("foo")]
-        public void ToString_OneProperty<TProperty>(TProperty value) {
+        [MemberData(nameof(ToString_OneProperty_MemberData))]
+        public void ToString_OneProperty<TProperty>(TProperty value, string expectedValue) {
 
             // Arrange
 
@@ -68,11 +59,11 @@ namespace Invio.Immutable {
 
             // Act
 
-            var output = oneProperty.ToString();
+            var actual = oneProperty.ToString();
 
             // Assert
 
-            Assert.Equal($"{{ Property: {value} }}", output);
+            Assert.Equal("{ Property: " + expectedValue + " }", actual);
         }
 
         [Fact]
@@ -81,7 +72,8 @@ namespace Invio.Immutable {
             // Arrange
 
             var timestamp = new DateTime(2016, 3, 17, 12, 30, 55, 111);
-            var multiple = new MultipleProperties("foo", 42, timestamp);
+            var nullableTimestamp = new DateTime(2006, 7, 22, 15, 30, 0); // <3
+            var multiple = new MultipleProperties("foo", 42, timestamp, nullableTimestamp);
 
             // Act
 
@@ -91,9 +83,10 @@ namespace Invio.Immutable {
 
             Assert.Equal(
                 "{ " +
-                "StringProperty: foo, " +
+                "StringProperty: \"foo\", " +
                 "IntProperty: 42, " +
-                "DateTimeProperty: 2016-03-17T12:30:55.1110000 }",
+                "DateTimeProperty: 2016-03-17T12:30:55.1110000, " +
+                "NullableDateTimeProperty: 2006-07-22T15:30:00.0000000 }",
                 output
             );
         }
@@ -115,15 +108,18 @@ namespace Invio.Immutable {
             public String StringProperty { get; }
             public int IntProperty { get; }
             public DateTime DateTimeProperty { get; }
+            public Nullable<DateTime> NullableDateTimeProperty { get; }
 
             public MultipleProperties(
                 string stringProperty,
                 int intProperty,
-                DateTime dateTimeProperty) {
+                DateTime dateTimeProperty,
+                DateTime? nullableDateTimeProperty) {
 
                 this.StringProperty = stringProperty;
                 this.IntProperty = intProperty;
                 this.DateTimeProperty = dateTimeProperty;
+                this.NullableDateTimeProperty = nullableDateTimeProperty;
             }
 
         }
