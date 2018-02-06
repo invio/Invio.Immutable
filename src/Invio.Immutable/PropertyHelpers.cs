@@ -12,7 +12,8 @@ namespace Invio.Immutable {
     /// <remarks>
     ///   <para>
     ///     The goal with this and other *-Helpers classes is to extract some of the
-    ///     assumptions and logic out of ImmutableBase so they can be tests in isolation.
+    ///     assumptions and logic out of <see cref="ImmutableBase{TImmutable}" /> so
+    ///     they can be tested in isolation.
     ///   </para>
     /// </remarks>
     internal static class PropertyHelpers {

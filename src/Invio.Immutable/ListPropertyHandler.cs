@@ -9,17 +9,16 @@ namespace Invio.Immutable {
     ///   This is the <see cref="IPropertyHandler" /> to use for properties that are
     ///   of type that implements <see cref="IEnumerable" />. In order for two values
     ///   to be considered equal, the items within the enumerable must be the same in
-    ///   quantity, value, and order. String representations will look similar to an
-    ///   array in JSON notation.
+    ///   quantity, value, and order.
     /// </summary>
-    public sealed class ListPropertyHandler : EnumerablePropertyHandlerBase {
+    public sealed class ListPropertyHandler : PropertyHandlerBase<IEnumerable> {
 
         /// <summary>
         ///   Creates an instance of <see cref="ListPropertyHandler" /> that
         ///   uses the items, and those items' orders found in the
         ///   <see cref="IEnumerable" /> values stored in the provided
-        ///   <see cref="PropertyInfo" /> to determine equality, generate
-        ///   hash codes, and create external string representations.
+        ///   <see cref="PropertyInfo" /> to determine equality and generate
+        ///   hash codes.
         /// </summary>
         /// <exception cref="ArgumentNullException">
         ///   Thrown when <paramref name="property" /> is null.

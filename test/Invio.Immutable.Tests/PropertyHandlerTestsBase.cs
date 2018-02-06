@@ -236,53 +236,6 @@ namespace Invio.Immutable {
             Assert.NotNull(exception.InnerException);
         }
 
-        [Fact]
-        public void GetPropertyValueDisplayString_NullParent() {
-
-            // Arrange
-
-            var property = this.NextValidPropertyInfo();
-            var handler = this.CreateHandler(property);
-
-            // Act
-
-            var exception = Record.Exception(
-                () => handler.GetPropertyValueDisplayString(null)
-            );
-
-            // Assert
-
-            Assert.IsType<ArgumentNullException>(exception);
-        }
-
-        [Fact]
-        public void GetPropertyValueDisplayString_InvalidParent() {
-
-            // Arrange
-
-            var property = this.NextValidPropertyInfo();
-            var handler = this.CreateHandler(property);
-            var invalidParent = new object();
-
-            // Act
-
-            var exception = Record.Exception(
-                () => handler.GetPropertyValueDisplayString(invalidParent)
-            );
-
-            // Assert
-
-            Assert.Equal(
-                $"The value object provided is of type {nameof(Object)}, " +
-                $"which does not contains the {property.Name} property." +
-                Environment.NewLine + "Parameter name: parent",
-                exception.Message
-            );
-
-            Assert.IsType<ArgumentException>(exception);
-            Assert.NotNull(exception.InnerException);
-        }
-
         protected abstract PropertyInfo NextValidPropertyInfo();
         protected abstract object NextParent();
         protected abstract IPropertyHandler CreateHandler(PropertyInfo property);

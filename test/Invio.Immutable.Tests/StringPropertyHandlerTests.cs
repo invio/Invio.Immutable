@@ -220,44 +220,6 @@ namespace Invio.Immutable {
             Assert.Equal(comparerResult, handlerResult);
         }
 
-        [Fact]
-        public void GetPropertyValueDisplayString_NullValueDoesNotWrapQuotes() {
-
-            // Arrange
-
-            var handler = this.CreateHandler(stringProperty);
-            var fake = this.NextFake().SetStringProperty(null);
-
-            // Act
-
-            var displayString = handler.GetPropertyValueDisplayString(fake);
-
-            // Assert
-
-            Assert.Equal("null", displayString);
-        }
-
-        [Theory]
-        [InlineData("foo")]
-        [InlineData("BAR")]
-        [InlineData("")]
-        [InlineData(" ")]
-        public void GetPropertyValueDisplayString_NonNullWrapsWithQuotes(String value) {
-
-            // Arrange
-
-            var handler = this.CreateHandler(stringProperty);
-            var fake = this.NextFake().SetStringProperty(value);
-
-            // Act
-
-            var displayString = handler.GetPropertyValueDisplayString(fake);
-
-            // Assert
-
-            Assert.Equal(String.Concat("\"", value, "\""), displayString);
-        }
-
         protected override PropertyInfo NextValidPropertyInfo() {
             return stringProperty;
         }

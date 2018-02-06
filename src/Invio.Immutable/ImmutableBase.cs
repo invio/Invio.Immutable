@@ -24,6 +24,7 @@ namespace Invio.Immutable {
         private static Func<object[], TImmutable> createImmutable { get; }
         private static ImmutableArray<IPropertyHandler> handlers { get; }
         private static ImmutableDictionary<String, IPropertyHandler> handlersByName { get; }
+        private static IStringFormatter stringFormatter { get; }
 
         static ImmutableBase() {
             var propertiesByName = PropertyHelpers.GetPropertyMap<TImmutable>();
@@ -56,8 +57,6 @@ namespace Invio.Immutable {
                     handler = new SetPropertyHandler(property);
                 } else if (type.IsDerivativeOf(typeof(IEnumerable))) {
                     handler = new ListPropertyHandler(property);
-                } else if (type == typeof(DateTime) || type == typeof(DateTime?)) {
-                    handler = new DateTimePropertyHandler(property);
                 } else {
                     handler = new DefaultPropertyHandler(property);
                 }
@@ -68,6 +67,7 @@ namespace Invio.Immutable {
 
             handlers = handlersBuilder.ToImmutable();
             handlersByName = handlersByNameBuilder.ToImmutable();
+            stringFormatter = new DefaultStringFormatter();
         }
 
         /// <summary>
@@ -323,7 +323,11 @@ namespace Invio.Immutable {
         }
 
         private String GetHandlerDisplayString(IPropertyHandler handler) {
-            return $"{handler.PropertyName}: {handler.GetPropertyValueDisplayString(this)}";
+            return String.Format(
+                "{0}: {1}",
+                handler.PropertyName,
+                stringFormatter.Format(handler.GetPropertyValue(this))
+            );
         }
 
     }

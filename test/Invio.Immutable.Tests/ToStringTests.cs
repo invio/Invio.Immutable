@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Invio.Xunit;
@@ -71,9 +72,14 @@ namespace Invio.Immutable {
 
             // Arrange
 
-            var timestamp = new DateTime(2016, 3, 17, 12, 30, 55, 111);
-            var nullableTimestamp = new DateTime(2006, 7, 22, 15, 30, 0); // <3
-            var multiple = new MultipleProperties("foo", 42, timestamp, nullableTimestamp);
+            var multiple = new MultipleProperties(
+                "foo",
+                42,
+                new DateTime(2016, 3, 17, 12, 30, 55, 111),
+                new DateTime(2006, 7, 22, 15, 30, 0), // <3
+                null,
+                ImmutableHashSet<Guid>.Empty
+            );
 
             // Act
 
@@ -86,7 +92,9 @@ namespace Invio.Immutable {
                 "StringProperty: \"foo\", " +
                 "IntProperty: 42, " +
                 "DateTimeProperty: 2016-03-17T12:30:55.1110000, " +
-                "NullableDateTimeProperty: 2006-07-22T15:30:00.0000000 }",
+                "NullableDateTimeProperty: 2006-07-22T15:30:00.0000000, " +
+                "Anything: null, " +
+                "Enumerable: [] }",
                 output
             );
         }
@@ -109,17 +117,23 @@ namespace Invio.Immutable {
             public int IntProperty { get; }
             public DateTime DateTimeProperty { get; }
             public Nullable<DateTime> NullableDateTimeProperty { get; }
+            public Object Anything { get; }
+            public IEnumerable Enumerable { get; }
 
             public MultipleProperties(
-                string stringProperty,
-                int intProperty,
-                DateTime dateTimeProperty,
-                DateTime? nullableDateTimeProperty) {
+                string stringProperty = default(string),
+                int intProperty = default(int),
+                DateTime dateTimeProperty = default(DateTime),
+                DateTime? nullableDateTimeProperty = default(DateTime?),
+                Object anything = default(Object),
+                IEnumerable enumerable = default(IEnumerable)) {
 
                 this.StringProperty = stringProperty;
                 this.IntProperty = intProperty;
                 this.DateTimeProperty = dateTimeProperty;
                 this.NullableDateTimeProperty = nullableDateTimeProperty;
+                this.Anything = anything;
+                this.Enumerable = enumerable;
             }
 
         }

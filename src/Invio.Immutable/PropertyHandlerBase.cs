@@ -16,12 +16,6 @@ namespace Invio.Immutable {
     public abstract class PropertyHandlerBase<TProperty> : IPropertyHandler {
 
         /// <summary>
-        ///   Anytime a <c>null</c> needs to be displayed as a string, this
-        ///   is the string used to inform the user that the value is null.
-        /// </summary>
-        protected const string nullAsString = "null";
-
-        /// <summary>
         ///   The name of the abstracted property that exists on the value object.
         /// </summary>
         public virtual String PropertyName { get; }
@@ -42,8 +36,8 @@ namespace Invio.Immutable {
         /// </summary>
         /// <param name="property">
         ///   A <see cref="PropertyInfo" /> on a value object that will potentially
-        ///   have its native equality comparison, hash code generation, and string
-        ///   representation by the inheriting class.
+        ///   have its native equality comparison and hash code generation by the
+        ///   inheriting class.
         /// </param>
         /// <exception cref="ArgumentNullException">
         ///   Thrown when <paramref name="property" /> is null.
@@ -232,56 +226,6 @@ namespace Invio.Immutable {
                     exception
                 );
             }
-        }
-
-        /// <summary>
-        ///   Generates a <see cref="String" /> representation for the abstracted property
-        ///   using the value stored on the value object provided via
-        ///   <paramref name="parent" />.
-        /// </summary>
-        /// <param name="parent">
-        ///   A value object that contains the abstracted property.
-        /// </param>
-        /// <exception cref="ArgumentNullException">
-        ///   Thrown when <paramref name="parent" /> is null.
-        /// </exception>
-        /// <exception cref="ArgumentException">
-        ///   Thrown when <paramref name="parent" /> does not contain the abstracted property.
-        /// </exception>
-        /// <returns>
-        ///   An appropriate string representation for the value of the abstracted property
-        ///   found on the value object provided via <paramref name="parent" />.
-        /// </returns>
-        public virtual String GetPropertyValueDisplayString(object parent) {
-            if (parent == null) {
-                throw new ArgumentNullException(nameof(parent));
-            }
-
-            var propertyValue = this.GetPropertyValueImplOrThrow(parent, nameof(parent));
-
-            if (propertyValue == null) {
-                return nullAsString;
-            }
-
-            return this.GetPropertyValueDisplayStringImpl(propertyValue);
-        }
-
-        /// <summary>
-        ///   An implementation specific external string representation that
-        ///   can be deferred to the class that inherits from this
-        ///   <see cref="PropertyHandlerBase{TProperty}" /> implementation. By default,
-        ///   this uses the native <see cref="Object.ToString" /> implementation.
-        /// </summary>
-        /// <param name="propertyValue">
-        ///   A non-null property value extracted from a value object that contains the
-        ///   <see cref="PropertyInfo" /> injected into the constructor.
-        /// </param>
-        /// <returns>
-        ///   An appropriate string representation for the value provided via the
-        ///   <paramref name="propertyValue" /> parameter.
-        /// </returns>
-        protected virtual String GetPropertyValueDisplayStringImpl(TProperty propertyValue) {
-            return propertyValue.ToString();
         }
 
     }

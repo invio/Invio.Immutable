@@ -216,48 +216,6 @@ namespace Invio.Immutable {
             Assert.Equal(expectedValue, actualValue);
         }
 
-        [Theory]
-        [MemberData(nameof(PropertyValues_NonNullParameters))]
-        public void GetPropertyValueDisplayString_NonNullValues(
-            String propertyName,
-            object propertyValue) {
-
-            // Arrange
-
-            var handler = this.CreateHandler(propertyName);
-            var parent = NextFake().SetPropertyValue(propertyName, propertyValue);
-            var expectedString = propertyValue.ToString();
-
-            // Act
-
-            var actualString = handler.GetPropertyValueDisplayString(parent);
-
-            // Assert
-
-            Assert.Equal(expectedString, actualString);
-        }
-
-        [Theory]
-        [InlineData(nameof(FakeImmutable.StringProperty))]
-        [InlineData(nameof(FakeImmutable.NullableDateTimeProperty))]
-        public void GetPropertyValueDisplayString_NullValues(String propertyName) {
-
-            // Arrange
-
-            const string expectedString = "null";
-
-            var handler = this.CreateHandler(propertyName);
-            var parent = NextFake().SetPropertyValue(propertyName, null);
-
-            // Act
-
-            var actualString = handler.GetPropertyValueDisplayString(parent);
-
-            // Assert
-
-            Assert.Equal(expectedString, actualString);
-        }
-
         protected override PropertyInfo NextValidPropertyInfo() {
             return
                 properties

@@ -10,8 +10,6 @@ namespace Invio.Immutable {
     ///   this implementation uses the native value, equality comparison, and hash code
     ///   generation for strings unless that behavior has been overridden with a
     ///   specific <see cref="StringComparer" /> implementation during instantiation.
-    ///   In all situations, it alters string representations of the property values
-    ///   such that non-null values are wrapped in double quotation marks.
     /// </summary>
     public sealed class StringPropertyHandler : PropertyHandlerBase<string> {
 
@@ -30,8 +28,7 @@ namespace Invio.Immutable {
         /// <summary>
         ///   Creates an instance of <see cref="StringPropertyHandler" /> that will use
         ///   the native equality comparison and hash code generation for the provided
-        ///   <see cref="PropertyInfo" />. However, the external string representation
-        ///   will be encapsulated in quotation marks for non-null values.
+        ///   <see cref="PropertyInfo" />.
         /// </summary>
         /// <param name="property">
         ///   A <see cref="PropertyInfo" /> on a value object that is of type
@@ -51,8 +48,6 @@ namespace Invio.Immutable {
         ///   Creates an instance of <see cref="StringPropertyHandler" /> that will use
         ///   the provided <paramref name="comparer" /> to perform equality comparison
         ///   and hash code generation for the provided <see cref="PropertyInfo" />.
-        ///   External string representation will be encapsulated in quotation marks
-        ///   for non-null values.
         /// </summary>
         /// <param name="property">
         ///   A <see cref="PropertyInfo" /> on a value object that is of type
@@ -98,15 +93,6 @@ namespace Invio.Immutable {
         /// </summary>
         protected override int GetPropertyValueHashCodeImpl(string propertyValue) {
             return this.comparer.GetHashCode(propertyValue);
-        }
-
-        /// <summary>
-        ///   Generates a <see cref="String" /> representation for the provided
-        ///   <paramref name="propertyValue" />. It will be the <see cref="String" />
-        ///   itself but wrapped in double quotation marks if the value is non-null.
-        /// </summary>
-        protected override String GetPropertyValueDisplayStringImpl(string propertyValue) {
-            return String.Concat("\"", propertyValue, "\"");
         }
 
     }

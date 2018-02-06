@@ -12,10 +12,9 @@ namespace Invio.Immutable {
     ///   This is the <see cref="IPropertyHandler" /> to use for properties that are
     ///   of types that implement <see cref="IEnumerable" />. In order for two values
     ///   to be considered equal, the items within the enumerable must be the same in
-    ///   quantity and value, but they do not need to be in the same order. String
-    ///   representations will look similar to an array in JSON notation.
+    ///   quantity and value, but they do not need to be in the same order.
     /// </summary>
-    public sealed class SetPropertyHandler : EnumerablePropertyHandlerBase {
+    public sealed class SetPropertyHandler : PropertyHandlerBase<IEnumerable> {
 
         private Func<IEnumerable, IEnumerable, bool> arePropertyValuesEqual { get; }
         private Lazy<Func<object, object, object>> lazySetEqualsFunc { get; }
@@ -24,8 +23,8 @@ namespace Invio.Immutable {
         ///   Creates an instance of <see cref="SetPropertyHandler" /> that
         ///   uses the items. but not those items' orders, found in the
         ///   <see cref="IEnumerable" /> values stored in the provided
-        ///   <see cref="PropertyInfo" /> to determine equality, generate
-        ///   hash codes, and create external string representations.
+        ///   <see cref="PropertyInfo" /> to determine equality and generate
+        ///   hash codes.
         /// </summary>
         /// <exception cref="ArgumentNullException">
         ///   Thrown when <paramref name="property" /> is null.
