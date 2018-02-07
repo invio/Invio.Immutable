@@ -48,6 +48,12 @@ namespace Invio.Immutable {
                     ImmutableHashSet.Create("12345", "Hello, World", "Bananas", "12345")
                 };
 
+                yield return new object[] {
+                    nameof(FakeImmutable.Set),
+                    ImmutableHashSet.Create(new string[] { "foo", null }),
+                    ImmutableHashSet.Create(new string[] { null, null, "foo" })
+                };
+
                 var guid = Guid.NewGuid();
 
                 yield return new object[] {
@@ -112,6 +118,14 @@ namespace Invio.Immutable {
                     nameof(FakeImmutable.Array),
                     new object[] { "foo", "bar" },
                     new string[] { "FOO", "bar" }
+                };
+
+                // One of the values is null
+
+                yield return new object[] {
+                    nameof(FakeImmutable.Array),
+                    new object[] { "foo", "bar" },
+                    new string[] { null, "bar" }
                 };
 
                 // DateTime.MinValue vs. DateTime.MaxValue
