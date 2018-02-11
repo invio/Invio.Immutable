@@ -55,7 +55,7 @@ namespace Invio.Immutable {
 
             public PrivateGetter(String foo) {
                 this.Foo = foo;
-                this.hidden = (foo ?? String.Empty) + (foo ?? String.Empty);
+                this.hidden = Guid.NewGuid().ToString();
             }
 
         }
@@ -65,7 +65,7 @@ namespace Invio.Immutable {
 
             // Arrange & Act
 
-            var propertyMap = PropertyHelpers.GetPropertyMap<PrivateGetter>();
+            var propertyMap = PropertyHelpers.GetPropertyMap<ExclusiveSetter>();
 
             // Assert
 
@@ -75,13 +75,48 @@ namespace Invio.Immutable {
 
         public class ExclusiveSetter : ImmutableBase<ExclusiveSetter> {
 
-            public String hidden { set {} }
+            public String Hidden { set {} }
             public String Foo { get; }
 
             public ExclusiveSetter(String foo) {
                 this.Foo = foo;
             }
 
+        }
+
+        [Fact]
+        public void GetPropertyMap_IgnoreCustomGetters() {
+
+            // Arrange & Act
+
+            var propertyMap = PropertyHelpers.GetPropertyMap<NonAutoProperties>();
+
+            // Assert
+
+            Assert.Equal(2, propertyMap.Count);
+            AssertContainsProperty(propertyMap, nameof(NonAutoProperties.ValidGetterOnly));
+            AssertContainsProperty(propertyMap, nameof(NonAutoProperties.ValidWithSetter));
+        }
+
+        public sealed class NonAutoProperties : ImmutableBase<NonAutoProperties> {
+
+            public String ValidGetterOnly { get; }
+            public String ValidWithSetter { get; set; }
+
+            public String CustomGetter { get { return String.Empty; } }
+            public bool CustomLambda => this.ValidGetterOnly == null;
+
+            public int WrappedField {
+                get { return this.wrapped; }
+                set { this.wrapped = value;}
+            }
+
+            private int wrapped;
+
+            public NonAutoProperties(String validGetterOnly, String validWithSetter) {
+                this.ValidGetterOnly = validGetterOnly;
+                this.ValidWithSetter = validWithSetter;
+            }
         }
 
         [Fact]

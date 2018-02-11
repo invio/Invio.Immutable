@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
+using Invio.Extensions.Reflection;
 
 namespace Invio.Immutable {
 
@@ -46,7 +47,7 @@ namespace Invio.Immutable {
             var properties =
                 typeof(TImmutable)
                     .GetProperties(flags)
-                    .Where(property => property.GetGetMethod() != null)
+                    .Where(property => property.IsAutoImplemented())
                     .ToImmutableList();
 
             var duplicatePropertyName =
@@ -65,7 +66,10 @@ namespace Invio.Immutable {
                 );
             }
 
-            return properties.ToDictionary(p => p.Name, StringComparer.OrdinalIgnoreCase);
+            return properties.ToImmutableDictionary(
+                property => property.Name,
+                StringComparer.OrdinalIgnoreCase
+            );
         }
 
     }
