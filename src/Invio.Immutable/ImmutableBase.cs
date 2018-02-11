@@ -21,12 +21,14 @@ namespace Invio.Immutable {
     public abstract class ImmutableBase<TImmutable> : IEquatable<TImmutable>
         where TImmutable : ImmutableBase<TImmutable> {
 
+        private static StringComparer ordinalIgnoreCase { get; }
         private static Func<object[], TImmutable> createImmutable { get; }
         private static ImmutableArray<IPropertyHandler> handlers { get; }
         private static ImmutableDictionary<String, IPropertyHandler> handlersByName { get; }
         private static IStringFormatter stringFormatter { get; }
 
         static ImmutableBase() {
+            ordinalIgnoreCase = StringComparer.OrdinalIgnoreCase;
             var propertiesByName = PropertyHelpers.GetPropertyMap<TImmutable>();
 
             var constructor =
@@ -43,7 +45,7 @@ namespace Invio.Immutable {
 
             var handlersBuilder = ImmutableArray.CreateBuilder<IPropertyHandler>();
             var handlersByNameBuilder =
-                ImmutableDictionary.CreateBuilder<String, IPropertyHandler>();
+                ImmutableDictionary.CreateBuilder<String, IPropertyHandler>(ordinalIgnoreCase);
 
             foreach (var property in properties) {
                 var type = property.PropertyType;
@@ -119,30 +121,29 @@ namespace Invio.Immutable {
         ///   found on <typeparamref name="TImmutable" /> and uses them to creates a new
         ///   instance of <typeparamref name="TImmutable" /> after replacing the current value
         ///   for the property identified by <paramref name="propertyName" /> with the
-        ///   provided <paramref name="value" />.
+        ///   value provided by <paramref name="value" />.
         /// </summary>
         /// <remarks>
         ///   <para>
         ///     This method leaves the current instance of <typeparamref name="TImmutable" />
-        ///     unaffected. Only the new instance returned from this method will have the
-        ///     property identified by <paramref name="propertyName" /> changed to the
-        ///     provided <paramref name="value" />.
+        ///     unaffected. Only the new instance returned will have the property identified
+        ///     by <paramref name="propertyName" /> updated to the provided
+        ///     <paramref name="value" />.
         ///   </para>
         ///   <para>
-        ///     This method is intentionally left as 'protected' so that
-        ///     <see cref="ImmutableBase{TImmutable}" /> leaves it up to the implementer as
-        ///     to whether or not he or she wishes to expose the generic setting of values.
+        ///     This method is intentionally left as 'protected' with an '*Impl' suffix so
+        ///     that it can be left up to the implementer to decide if the inheriting class
+        ///     should expose the ability to set values by any given property name.
         ///   </para>
         /// </remarks>
         /// <param name="propertyName">
         ///   The name of the property that exists on <typeparamref name="TImmutable" />
-        ///   that is to have its value updated to the provided <paramref name="value" />
-        ///   on the new instance of <typeparamref name="TImmutable" />. The approach used
-        ///   to locate a property with a matching name uses ordinal case-insensitivity.
+        ///   that will be updated to the provided <paramref name="value" />. The approach
+        ///   used to locate a property with a matching name is ordinal case-insensitivity.
         /// </param>
         /// <param name="value">
         ///   The new value for the property identified via <paramref name="propertyName" />
-        ///   that will be used on the new instance of <typeparamref name="TImmutable" />.
+        ///   that will be updated on the new instance of <typeparamref name="TImmutable" />.
         /// </param>
         /// <exception cref="ArgumentNullException">
         ///   Thrown when <paramref name="propertyName" /> is null.
@@ -156,7 +157,7 @@ namespace Invio.Immutable {
         ///   A new instance of <typeparamref name="TImmutable" /> which has all of the
         ///   same values for all of its public properties with the exception of the
         ///   property identified by <paramref name="propertyName" />. That property
-        ///   will have the value provided via <paramref name="value" />.
+        ///   will have its value updated to <paramref name="value" />.
         /// </returns>
         protected TImmutable SetPropertyValueImpl(String propertyName, object value) {
             if (propertyName == null) {
@@ -169,7 +170,7 @@ namespace Invio.Immutable {
             for (var index = 0; index < values.Length; index++) {
                 var handler = handlers[index];
 
-                if (handler.PropertyName.Equals(propertyName)) {
+                if (ordinalIgnoreCase.Equals(handler.PropertyName, propertyName)) {
                     if (!IsAssignable(handler.PropertyType, value)) {
                         var formattedValue = value?.ToString() ?? "null";
 
@@ -192,6 +193,107 @@ namespace Invio.Immutable {
                     $"The '{propertyName}' property was not found.",
                     nameof(propertyName)
                 );
+            }
+
+            return createImmutable(values);
+        }
+        /// <summary>
+        ///   Takes all of the current values for all of the publicly accessible properties
+        ///   found on <typeparamref name="TImmutable" /> and uses them to creates a new
+        ///   instance of <typeparamref name="TImmutable" /> after replacing the current values
+        ///   for the properties identified in the <paramref name="propertyValues" />
+        ///   collection.
+        /// </summary>
+        /// <remarks>
+        ///   <para>
+        ///     This method leaves the current instance of <typeparamref name="TImmutable" />
+        ///     unaffected. Only the new instance returned will have its properties updated
+        ///     based upon the property names and values provided via the
+        ///     <paramref name="propertyValues" /> parameter.
+        ///   </para>
+        ///   <para>
+        ///     This method is intentionally left as 'protected' with an '*Impl' suffix so
+        ///     that it can be left up to the implementer to decide if the inheriting class
+        ///     should expose the ability to set values by any given property name.
+        ///   </para>
+        /// </remarks>
+        /// <param name="propertyValues">
+        ///   An <see cref="IDictionary{String, Object}" /> that represents a mapping between
+        ///   the names of properties that exist on <typeparamref name="TImmutable" /> to
+        ///   updated values that should be assigned on the newly created instance of
+        ///   <typeparamref name="TImmutable" />. This implementation ignores the
+        ///   <see cref="IEqualityComparer{String}" /> used to identify distinct keys in
+        ///   <paramref name="propertyValues" />. Instead, the approach used to identify
+        ///   properties with matching names is ordinal case-insensitivity.
+        /// </param>
+        /// <exception cref="ArgumentNullException">
+        ///   Thrown when <paramref name="propertyValues" /> is null.
+        /// </exception>
+        /// <exception cref="ArgumentException">
+        ///   Thrown when no public property has the same name as one or more of the keys
+        ///   provided within <paramref name="propertyValues" />, if the value provided for
+        ///   one of the identified properties is incompatible with that property's type,
+        ///   or if the same property is identified as a matching property for two or more
+        ///   of the provided values.
+        /// </exception>
+        /// <returns>
+        ///   A new instance of <typeparamref name="TImmutable" /> which has all of the
+        ///   same values for all of its public properties with the exception of the
+        ///   properties identified by <paramref name="propertyValues" />. Those properties
+        ///   will have their values updated to those provided as values in the
+        ///   <paramref name="propertyValues" /> parameter.
+        /// </returns>
+        protected TImmutable SetPropertyValuesImpl(IDictionary<string, object> propertyValues) {
+            if (propertyValues == null) {
+                throw new ArgumentNullException(nameof(propertyValues));
+            }
+
+            var mappings = new Dictionary<string, KeyValuePair<string, object>>();
+
+            foreach (var kvp in propertyValues) {
+                if (handlersByName.TryGetValue(kvp.Key, out IPropertyHandler handler)) {
+                    try {
+                        mappings.Add(handler.PropertyName, kvp);
+                    } catch (ArgumentException innerException) {
+                        throw new ArgumentException(
+                            $"The '{kvp.Key}' property was specified more than once.",
+                            nameof(propertyValues),
+                            innerException
+                        );
+                    }
+                } else {
+                    throw new ArgumentException(
+                        $"The '{kvp.Key}' property was not found.",
+                        nameof(propertyValues)
+                    );
+                }
+            }
+
+            var values = new object[handlers.Length];
+
+            for (var index = 0; index < values.Length; index++) {
+                var handler = handlers[index];
+
+                KeyValuePair<string, object> propertyValueMapping;
+
+                if (mappings.TryGetValue(handler.PropertyName, out propertyValueMapping)) {
+                    var propertyName = propertyValueMapping.Key;
+                    var propertyValue = propertyValueMapping.Value;
+
+                    if (!IsAssignable(handler.PropertyType, propertyValue)) {
+                        var formattedValue = propertyValue?.ToString() ?? "null";
+
+                        throw new ArgumentException(
+                            $"Unable to assign the value ({formattedValue}) " +
+                            $"to the '{propertyName}' property.",
+                            nameof(propertyValues)
+                        );
+                    }
+
+                    values[index] = propertyValue;
+                } else {
+                    values[index] = handler.GetPropertyValue(this);
+                }
             }
 
             return createImmutable(values);

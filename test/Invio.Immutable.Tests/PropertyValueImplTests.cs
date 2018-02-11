@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using Invio.Xunit;
 using Xunit;
 
@@ -54,6 +56,22 @@ namespace Invio.Immutable {
                 Environment.NewLine + "Parameter name: propertyName",
                 exception.Message
             );
+        }
+
+        [Fact]
+        public void GetPropertyValueImpl_CaseInsensitivePropertyName() {
+
+            // Arrange
+
+            var fake = this.NextFake();
+
+            // Act
+
+            var actualValue = fake.GetPropertyValue(nameof(Fake.StringProperty).ToLower());
+
+            // Assert
+
+            Assert.Equal(fake.StringProperty, actualValue);
         }
 
         [Fact]
@@ -184,6 +202,24 @@ namespace Invio.Immutable {
         }
 
         [Fact]
+        public void SetPropertyValueImpl_CaseInsensitivePropertyName() {
+
+            // Arrange
+
+            var original = this.NextFake();
+            var propertyName = nameof(Fake.Number).ToUpper();
+            const int number = 5;
+
+            // Act
+
+            var updated = original.SetPropertyValue(propertyName, number);
+
+            // Assert
+
+            Assert.Equal(number, updated.Number);
+        }
+
+        [Fact]
         public void SetPropertyValueImpl_NullableProperty() {
 
             // Arrange
@@ -198,6 +234,212 @@ namespace Invio.Immutable {
             // Assert
 
             Assert.Null(updated.NullableDateTime);
+        }
+
+        [Fact]
+        public void SetPropertyValuesImpl_Null() {
+
+            // Arrange
+
+            var fake = this.NextFake();
+
+            // Act
+
+            var exception = Record.Exception(
+                () => fake.SetPropertyValues(null)
+            );
+
+            // Assert
+
+            Assert.IsType<ArgumentNullException>(exception);
+        }
+
+        [Fact]
+        public void SetPropertyValuesImpl_Empty() {
+
+            // Arrange
+
+            var original = this.NextFake();
+            var propertyValues = ImmutableDictionary<string, object>.Empty;
+
+            // Act
+
+            var result = original.SetPropertyValues(propertyValues);
+
+            // Assert
+
+            Assert.Equal(original, result);
+        }
+
+        [Fact]
+        public void SetPropertyValuesImpl_NonExistentProperty() {
+
+            // Arrange
+
+            var fake = this.NextFake();
+
+            const string propertyName = "ThisPropertyDoesNotExist";
+
+            var propertyValues =
+                ImmutableDictionary<string, object>
+                    .Empty
+                    .Add(propertyName, 5);
+
+            // Act
+
+            var exception = Record.Exception(
+               () => fake.SetPropertyValues(propertyValues)
+            );
+
+            // Assert
+
+            Assert.IsType<ArgumentException>(exception);
+
+            Assert.Equal(
+                $"The '{propertyName}' property was not found." +
+                Environment.NewLine + "Parameter name: propertyValues",
+                exception.Message
+            );
+        }
+
+        [Fact]
+        public void SetPropertyValuesImpl_RedundantPropertyAssignments() {
+
+            // Arrange
+
+            var fake = this.NextFake();
+
+            var propertyValues =
+                ImmutableDictionary<string, object>
+                    .Empty
+                    .Add(nameof(Fake.Number).ToUpper(), 5)
+                    .Add(nameof(Fake.Number).ToLower(), 5);
+
+            // Act
+
+            var exception = Record.Exception(
+               () => fake.SetPropertyValues(propertyValues)
+            );
+
+            // Assert
+
+            Assert.IsType<ArgumentException>(exception);
+
+            Assert.Equal(
+                $"The '{nameof(Fake.Number)}' property was specified more than once." +
+                Environment.NewLine + "Parameter name: propertyValues",
+                exception.Message,
+                ignoreCase: true
+            );
+        }
+
+        [Fact]
+        public void SetPropertyValuesImpl_CaseInsensitivePropertyNames() {
+
+            // Arrange
+
+            var original = this.NextFake();
+
+            var propertyName = nameof(Fake.Number).ToUpper();
+            const int number = 5;
+
+            var propertyValues =
+                ImmutableDictionary<string, object>
+                    .Empty
+                    .Add(propertyName, number);
+
+            // Act
+
+            var updated = original.SetPropertyValues(propertyValues);
+
+            // Assert
+
+            Assert.Equal(number, updated.Number);
+        }
+
+        [Fact]
+        public void SetPropertyValuesImpl_InvalidValueType_Null() {
+
+            // Arrange
+
+            var fake = this.NextFake();
+
+            var propertyValues =
+                ImmutableDictionary<string, object>
+                    .Empty
+                    .Add(nameof(Fake.Number), null);
+
+            // Act
+
+            var exception = Record.Exception(
+                () => fake.SetPropertyValues(propertyValues)
+            );
+
+            // Assert
+
+            Assert.IsType<ArgumentException>(exception);
+
+            Assert.Equal(
+                $"Unable to assign the value (null) to the 'Number' property." +
+                Environment.NewLine + "Parameter name: propertyValues",
+                exception.Message
+            );
+        }
+
+        [Fact]
+        public void SetPropertyValuesImpl_InvalidPropertyType_NonNull() {
+
+            // Arrange
+
+            var fake = this.NextFake();
+
+            var propertyValues =
+                ImmutableDictionary<string, object>
+                    .Empty
+                    .Add(nameof(Fake.Number), "foo");
+
+            // Act
+
+            var exception = Record.Exception(
+                () => fake.SetPropertyValues(propertyValues)
+            );
+
+            // Assert
+
+            Assert.IsType<ArgumentException>(exception);
+
+            Assert.Equal(
+                $"Unable to assign the value (foo) to the 'Number' property." +
+                Environment.NewLine + "Parameter name: propertyValues",
+                exception.Message
+            );
+        }
+
+        [Fact]
+        public void SetPropertyValuesImpl_MultipleProperties() {
+
+            // Arrange
+
+            var original = this.NextFake();
+
+            const int assignedNumber = 5;
+            const string assignedString = "Foo";
+
+            var propertyValues =
+                ImmutableDictionary<string, object>
+                    .Empty
+                    .Add(nameof(Fake.Number), assignedNumber)
+                    .Add(nameof(Fake.StringProperty), assignedString);
+
+            // Act
+
+            var updated = original.SetPropertyValues(propertyValues);
+
+            // Assert
+
+            Assert.Equal(assignedNumber, updated.Number);
+            Assert.Equal(assignedString, updated.StringProperty);
+            Assert.Equal(original.NullableDateTime, updated.NullableDateTime);
         }
 
         private Fake NextFake() {
@@ -232,6 +474,10 @@ namespace Invio.Immutable {
 
             public Fake SetPropertyValue(String propertyName, object value) {
                 return this.SetPropertyValueImpl(propertyName, value);
+            }
+
+            public Fake SetPropertyValues(IDictionary<string, object> propertyValues) {
+                return this.SetPropertyValuesImpl(propertyValues);
             }
 
             public Fake SetNumber(int number) {
