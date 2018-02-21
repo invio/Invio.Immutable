@@ -6,7 +6,7 @@
     <Authors>Invio Inc. &lt;developers@invioinc.com&gt;</Authors>
     <TargetFramework>netstandard1.3</TargetFramework>
     <DebugType>portable</DebugType>
-    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <AssemblyName>Invio.Immutable</AssemblyName>
     <PackageId>Invio.Immutable</PackageId>
     <PackageTags>immutable;immutability;core</PackageTags>

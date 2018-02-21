@@ -23,15 +23,15 @@ namespace Invio.Immutable {
         /// </summary>
         /// <remarks>
         ///   <para>
-        ///     If the <paramref name="value" /> is equal to <c> null,
-        ///     the <see cref="String"> <c>"null"</c> is returned.
+        ///     If the <paramref name="value" /> is equal to <c>null</c>,
+        ///     the <see cref="String" /> <c>"null"</c> is returned.
         ///   </para>
         ///   <para>
         ///     If there is not a type-specific way to render the
         ///     <paramref name="value" /> as a string, the default
         ///     <see cref="Object.ToString()" /> implementation for
         ///     the value is used.
-        ////  </para>
+        ///   </para>
         /// </remarks>
         /// <param name="value">
         ///   Any value that the consumer wishes to render into a
