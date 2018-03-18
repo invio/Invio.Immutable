@@ -43,25 +43,18 @@ namespace Invio.Immutable {
                     .Select(parameter => propertiesByName[parameter.Name])
                     .ToImmutableArray();
 
+            var provider = AggregatePropertyHandlerProvider.Create(
+                new StringPropertyHandlerProvider(),
+                new EnumerablePropertyHandlerProvider(),
+                new DefaultPropertyHandlerProvider()
+            );
+
             var handlersBuilder = ImmutableArray.CreateBuilder<IPropertyHandler>();
             var handlersByNameBuilder =
                 ImmutableDictionary.CreateBuilder<String, IPropertyHandler>(ordinalIgnoreCase);
 
             foreach (var property in properties) {
-                var type = property.PropertyType;
-
-                IPropertyHandler handler;
-
-                if (type == typeof(String)) {
-                    handler = new StringPropertyHandler(property);
-                } else if (type.IsDerivativeOf(typeof(ISet<>)) ||
-                           type.IsDerivativeOf(typeof(IImmutableSet<>))) {
-                    handler = new SetPropertyHandler(property);
-                } else if (type.IsDerivativeOf(typeof(IEnumerable))) {
-                    handler = new ListPropertyHandler(property);
-                } else {
-                    handler = new DefaultPropertyHandler(property);
-                }
+                var handler = provider.Create(property);
 
                 handlersBuilder.Add(handler);
                 handlersByNameBuilder.Add(handler.PropertyName, handler);
