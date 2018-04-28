@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Reflection;
 using Invio.Xunit;
 using Xunit;
 
@@ -129,6 +130,35 @@ namespace Invio.Immutable {
             // Assert
 
             Assert.Equal(String.Concat("\"", value, "\""), output);
+        }
+
+        public static IEnumerable<object[]> Format_Enums_MemberData {
+            get {
+                yield return new object[] { DateTimeKind.Utc, "Utc" };
+                yield return new object[] { (DateTimeKind)10, "10" };
+                yield return new object[] {
+                    BindingFlags.Public | BindingFlags.Instance,
+                    "Instance, Public"
+                };
+                yield return new object[] { (BindingFlags)Int32.MaxValue, "2147483647" };
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(Format_Enums_MemberData))]
+        public void Format_Enums<TEnum>(TEnum value, String expected) {
+
+            // Arrange
+
+            var formatter = new DefaultStringFormatter();
+
+            // Act
+
+            var actual = formatter.Format(value);
+
+            // Assert
+
+            Assert.Equal(expected, actual);
         }
 
         public static IEnumerable<object[]> Format_IEnumerable_Empty_MemberData {
