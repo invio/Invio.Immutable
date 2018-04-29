@@ -108,7 +108,7 @@ namespace Invio.Immutable {
         }
 
         [Fact]
-        public void Inequality_NonNullObject() {
+        public void Inequality_NonNullTypeMismatch() {
 
             // Arrange
 
@@ -139,6 +139,7 @@ namespace Invio.Immutable {
             // Assert
 
             Assert.False(isEqual);
+            AssertFakesNotEqual(fake, other);
         }
 
         [Theory]
@@ -283,6 +284,40 @@ namespace Invio.Immutable {
             Assert.Equal(original.Bar, updated.Bar);
         }
 
+        [Fact]
+        public void EqualityOverride_Nulls() {
+
+            // Arrange
+
+            SimpleImmutableFake left = null;
+            SimpleImmutableFake right = null;
+
+            // Act
+
+            var isEqual = (left == right);
+
+            // Assert
+
+            Assert.True(isEqual);
+        }
+
+        [Fact]
+        public void InequalityOverride_Nulls() {
+
+            // Arrange
+
+            SimpleImmutableFake left = null;
+            SimpleImmutableFake right = null;
+
+            // Act
+
+            var isNotEqual = (left != right);
+
+            // Assert
+
+            Assert.False(isNotEqual);
+        }
+
         private static void AssertFakesEqual(
             SimpleImmutableFake left,
             SimpleImmutableFake right) {
@@ -291,6 +326,8 @@ namespace Invio.Immutable {
             Assert.Equal((Object)left, (Object)right);
             Assert.Equal(right, left);
             Assert.Equal((Object)right, (Object)left);
+            Assert.True(left == right);
+            Assert.False(left != right);
 
             if (left != null && right != null) {
                 Assert.Equal(left.GetHashCode(), right.GetHashCode());
@@ -303,6 +340,8 @@ namespace Invio.Immutable {
 
             Assert.NotEqual(left, right);
             Assert.NotEqual((Object)left, (Object)right);
+            Assert.False(left == right);
+            Assert.True(left != right);
         }
 
         private SimpleImmutableFake NextFake() {

@@ -302,8 +302,8 @@ namespace Invio.Immutable {
         }
 
         /// <summary>
-        ///   Generates a consistent hash code based upon the values of each of
-        ///   the publically accessible properties on this instance of
+        ///   Generates a consistent hash code based upon the values of
+        ///   each publically accessible property on this instance of
         ///   <typeparamref name="TImmutable" />. If a non-String property
         ///   implements <see cref="IEnumerable" />, its items' hash codes
         ///   are combined to generate a hash code for that property.
@@ -387,6 +387,72 @@ namespace Invio.Immutable {
             }
 
             return true;
+        }
+
+        /// <summary>
+        ///   Defines equality for instances of <typeparamref name="TImmutable" /> to be
+        ///   the same as that which is performed via <see cref="Equals(TImmutable)" />
+        ///   on two non-null instances of <typeparamref name="TImmutable" />.
+        /// </summary>
+        /// <remarks>
+        ///   This is consistent with the behavior of other value types in C#,
+        ///   such as <see cref="Int32" /> and <see cref="Guid" />.
+        /// </remarks>
+        /// <param name="left">
+        ///   An instance of <typeparamref name="TImmutable" /> that will be compared
+        ///   with another instance of <typeparamref name="TImmutable" /> to determine
+        ///   if the two are considered equal based upon the values of their properties.
+        /// </param>
+        /// <param name="right">
+        ///   An instance of <typeparamref name="TImmutable" /> that will be compared with
+        ///   another instance of <typeparamref name="TImmutable" /> to determine if the
+        ///   two are considered equal based upon the values of their properties.
+        /// </param>
+        /// <returns>
+        ///   <c>true</c> if the two instances of <typeparamref name="TImmutable" /> are
+        ///   <c>null</c>, or have the same values for their properties.
+        ///   <c>false</c>, otherwise.
+        /// </returns>
+        public static bool operator ==(
+            ImmutableBase<TImmutable> left,
+            ImmutableBase<TImmutable> right) {
+
+            if (Object.ReferenceEquals(left, null)) {
+                return Object.ReferenceEquals(right, null);
+            }
+
+            return left.Equals(right);
+        }
+
+        /// <summary>
+        ///   Defines inequality for instances of <typeparamref name="TImmutable" /> to be
+        ///   the opposite as that which is performed via <see cref="Equals(TImmutable)" />
+        ///   on two non-null instances of <typeparamref name="TImmutable" />.
+        /// </summary>
+        /// <remarks>
+        ///   This is consistent with the behavior of other value types in C#,
+        ///   such as <see cref="Int32" /> and <see cref="Guid" />.
+        /// </remarks>
+        /// <param name="left">
+        ///   An instance of <typeparamref name="TImmutable" /> that will be compared with
+        ///   another instance of <typeparamref name="TImmutable" /> to determine if the
+        ///   two are considered unequal based upon the values of their properties.
+        /// </param>
+        /// <param name="right">
+        ///   An instance of <typeparamref name="TImmutable" /> that will be compared with
+        ///   another instance of <typeparamref name="TImmutable" /> to determine if the
+        ///   two are considered unequal based upon the values of their properties.
+        /// </param>
+        /// <returns>
+        ///   <c>true</c> if exactly one instance of <typeparamref name="TImmutable" /> is
+        ///   <c>null</c>, or if either has a distinct value for any of its properties.
+        ///   <c>false</c>, otherwise.
+        /// </returns>
+        public static bool operator !=(
+            ImmutableBase<TImmutable> left,
+            ImmutableBase<TImmutable> right) {
+
+            return !(left == right);
         }
 
         /// <summary>
