@@ -1,4 +1,7 @@
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using System.Reflection;
 
 namespace Invio.Immutable {
@@ -10,6 +13,20 @@ namespace Invio.Immutable {
     ///   <see cref="String" />.
     /// </summary>
     public sealed class StringPropertyHandlerProvider : PropertyHandlerProviderBase {
+
+        private static IDictionary<StringComparison, StringComparer> comparers { get; }
+
+        static StringPropertyHandlerProvider() {
+            comparers =
+                ImmutableDictionary<StringComparison, StringComparer>
+                    .Empty
+                    .Add(StringComparison.CurrentCulture, StringComparer.CurrentCulture)
+                    .Add(StringComparison.CurrentCultureIgnoreCase, StringComparer.CurrentCultureIgnoreCase)
+                    .Add(StringComparison.InvariantCulture, StringComparer.InvariantCulture)
+                    .Add(StringComparison.InvariantCultureIgnoreCase, StringComparer.InvariantCultureIgnoreCase)
+                    .Add(StringComparison.Ordinal, StringComparer.Ordinal)
+                    .Add(StringComparison.OrdinalIgnoreCase, StringComparer.OrdinalIgnoreCase);
+        }
 
         /// <summary>
         ///  Checks to see if the <see cref="PropertyInfo" /> has a
@@ -39,7 +56,39 @@ namespace Invio.Immutable {
         ///   within instances of <see cref="ImmutableBase{TImmutable}" />.
         /// </returns>
         protected override IPropertyHandler CreateImpl(PropertyInfo property) {
+            StringComparer comparer;
+
+            if (TryGetAttribute(property, out comparer)) {
+                return new StringPropertyHandler(property, comparer);
+            }
+
+            if (TryGetAttribute(property.ReflectedType.GetTypeInfo(), out comparer)) {
+                return new StringPropertyHandler(property, comparer);
+            }
+
             return new StringPropertyHandler(property);
+        }
+
+        private static bool TryGetAttribute(MemberInfo member, out StringComparer comparer) {
+            var comparison =
+                member
+                    .GetCustomAttributes(typeof(StringComparisonAttribute), inherit: true)
+                    .Cast<StringComparisonAttribute>()
+                    .SingleOrDefault()?
+                    .Comparison;
+
+            if (!comparison.HasValue) {
+                comparer = null;
+            } else if (!comparers.TryGetValue(comparison.Value, out comparer)) {
+                throw new ArgumentException(
+                    $"The {nameof(StringComparisonAttribute)} found on {member.Name} " +
+                    $"references a {nameof(StringComparison)}, '{comparison.Value:G}', " +
+                    $"that does not have a corresponding {nameof(StringComparer)}.",
+                    nameof(comparison)
+                );
+            }
+
+            return comparer != null;
         }
 
     }
