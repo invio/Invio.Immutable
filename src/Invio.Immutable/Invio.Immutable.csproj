@@ -4,7 +4,7 @@
     <AssemblyTitle>C# Library used to ease immutable class creation and data management</AssemblyTitle>
     <VersionPrefix>0.4.0</VersionPrefix>
     <Authors>Invio Inc. &lt;developers@invioinc.com&gt;</Authors>
-    <TargetFramework>netstandard1.3</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <DebugType>portable</DebugType>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <AssemblyName>Invio.Immutable</AssemblyName>
@@ -14,7 +14,7 @@
     <PackageLicenseUrl>https://github.com/invio/Invio.Immutable/blob/master/LICENSE.txt</PackageLicenseUrl>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>git@github.com:invio/Invio.Immutable</RepositoryUrl>
-    <NetStandardImplicitPackageVersion>1.6.1</NetStandardImplicitPackageVersion>
+    <NetStandardImplicitPackageVersion>2.0.1</NetStandardImplicitPackageVersion>
   </PropertyGroup>
 
   <ItemGroup>
