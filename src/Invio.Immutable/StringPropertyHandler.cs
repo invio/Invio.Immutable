@@ -77,7 +77,7 @@ namespace Invio.Immutable {
 
         /// <summary>
         ///   Determines whether two property values are considered equal by using the
-        ///   <see cref="StringComparer" /> selected during the instantiaion of the
+        ///   <see cref="StringComparer" /> selected during the instantiation of the
         ///   <see cref="StringPropertyHandler" />.
         /// </summary>
         protected override bool ArePropertyValuesEqualImpl(
@@ -89,7 +89,7 @@ namespace Invio.Immutable {
 
         /// <summary>
         ///   Generates a hash code using the <see cref="StringComparer" /> selected
-        ///   during the instantiaion of the <see cref="StringPropertyHandler" />.
+        ///   during the instantiation of the <see cref="StringPropertyHandler" />.
         /// </summary>
         protected override int GetPropertyValueHashCodeImpl(string propertyValue) {
             return this.comparer.GetHashCode(propertyValue);

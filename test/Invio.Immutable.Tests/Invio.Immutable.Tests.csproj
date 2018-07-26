@@ -6,9 +6,6 @@
     <AssemblyName>Invio.Immutable.Tests</AssemblyName>
     <PackageId>Invio.Immutable.Tests</PackageId>
     <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
-    <AssetTargetFallback>
-      $(AssetTargetFallback);dotnet5.4;portable-net46+win8
-    </AssetTargetFallback>
     <RuntimeFrameworkVersion>2.1.0</RuntimeFrameworkVersion>
     <IsPackable>false</IsPackable>
   </PropertyGroup>

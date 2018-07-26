@@ -45,6 +45,8 @@ namespace Invio.Immutable {
 
             var provider = AggregatePropertyHandlerProvider.Create(
                 new StringPropertyHandlerProvider(),
+                new SinglePropertyHandlerProvider(),
+                new DoublePropertyHandlerProvider(),
                 new EnumerablePropertyHandlerProvider(),
                 new DefaultPropertyHandlerProvider()
             );
