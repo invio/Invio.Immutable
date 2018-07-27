@@ -47,6 +47,8 @@ namespace Invio.Immutable {
                 new StringPropertyHandlerProvider(),
                 new SinglePropertyHandlerProvider(),
                 new DoublePropertyHandlerProvider(),
+                new NullablePropertyHandlerProvider<Single>(new SinglePropertyHandlerProvider()),
+                new NullablePropertyHandlerProvider<Double>(new DoublePropertyHandlerProvider()),
                 new EnumerablePropertyHandlerProvider(),
                 new DefaultPropertyHandlerProvider()
             );

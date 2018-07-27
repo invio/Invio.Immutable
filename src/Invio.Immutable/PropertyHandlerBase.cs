@@ -15,6 +15,8 @@ namespace Invio.Immutable {
     /// </typeparam>
     public abstract class PropertyHandlerBase<TProperty> : IPropertyHandler {
 
+        public const Int32 NullValueHashCode = 37;
+
         /// <summary>
         ///   The name of the abstracted property that exists on the value object.
         /// </summary>
@@ -164,10 +166,10 @@ namespace Invio.Immutable {
             if (propertyValue == null) {
                 // Arbitrary (but prime!) number for null.
 
-                return 37;
+                return NullValueHashCode;
             }
 
-            return this.GetPropertyValueHashCodeImpl((TProperty)propertyValue);
+            return this.GetPropertyValueHashCodeImpl(propertyValue);
         }
 
         /// <summary>
@@ -215,14 +217,14 @@ namespace Invio.Immutable {
             return this.GetPropertyValueImplOrThrow(parent, nameof(parent));
         }
 
-        private TProperty GetPropertyValueImplOrThrow(object parent, string propertyName) {
+        protected TProperty GetPropertyValueImplOrThrow(object parent, string paramName) {
             try {
                 return (TProperty)this.getter.Value(parent);
             } catch (InvalidCastException exception) {
                 throw new ArgumentException(
                     $"The value object provided is of type {parent.GetType().Name}, " +
                     $"which does not contains the {this.PropertyName} property.",
-                    propertyName,
+                    paramName,
                     exception
                 );
             }

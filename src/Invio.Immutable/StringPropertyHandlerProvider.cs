@@ -12,7 +12,7 @@ namespace Invio.Immutable {
     ///   provided has a <see cref="PropertyInfo.PropertyType" /> of type
     ///   <see cref="String" />.
     /// </summary>
-    public sealed class StringPropertyHandlerProvider : PropertyHandlerProviderBase {
+    public sealed class StringPropertyHandlerProvider : PropertyHandlerProviderBase<String> {
 
         private static IDictionary<StringComparison, StringComparer> comparers { get; }
 
@@ -26,16 +26,6 @@ namespace Invio.Immutable {
                     .Add(StringComparison.InvariantCultureIgnoreCase, StringComparer.InvariantCultureIgnoreCase)
                     .Add(StringComparison.Ordinal, StringComparer.Ordinal)
                     .Add(StringComparison.OrdinalIgnoreCase, StringComparer.OrdinalIgnoreCase);
-        }
-
-        /// <summary>
-        ///  Checks to see if the <see cref="PropertyInfo" /> has a
-        ///  <see cref="PropertyInfo.PropertyType" /> of type <see cref="String" />
-        ///  to determine if the <see cref="PropertyInfo" /> can be
-        ///  use to create a <see cref="StringPropertyHandler" />.
-        /// </summary>
-        protected override bool IsSupportedImpl(PropertyInfo property) {
-            return property.PropertyType == typeof(string);
         }
 
         /// <summary>

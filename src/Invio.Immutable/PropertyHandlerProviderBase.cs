@@ -86,4 +86,17 @@ namespace Invio.Immutable {
 
     }
 
+    /// <inheritdoc />
+    public abstract class PropertyHandlerProviderBase<TProperty> : PropertyHandlerProviderBase {
+
+        /// <summary>
+        ///   Checks if the specified <paramref name="property" /> is of the type
+        ///   <typeparamref name="TProperty"/>.
+        /// </summary>
+        protected override bool IsSupportedImpl(PropertyInfo property) {
+            return property.PropertyType == typeof(TProperty);
+        }
+
+    }
+
 }

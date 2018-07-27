@@ -9,7 +9,7 @@ namespace Invio.Immutable {
     ///   provided has a <see cref="PropertyInfo.PropertyType" /> of type
     ///   <see cref="Double" />.
     /// </summary>
-    public class DoublePropertyHandlerProvider : PropertyHandlerProviderBase {
+    public class DoublePropertyHandlerProvider : PropertyHandlerProviderBase<Double> {
         /// <summary>
         ///   Checks to see if the <see cref="PropertyInfo" /> has a
         ///   <see cref="PropertyInfo.PropertyType" /> of type <see cref="Single" /> to determine
@@ -18,7 +18,7 @@ namespace Invio.Immutable {
         /// </summary>
         /// <inheritdoc />
         protected override bool IsSupportedImpl(PropertyInfo property) {
-            return base.IsSupportedImpl(property) && property.PropertyType == typeof(Double) &&
+            return base.IsSupportedImpl(property)  &&
                 (TryGetAttribute(property, out _) ||
                     TryGetAttribute(property.ReflectedType.GetTypeInfo(), out _));
         }

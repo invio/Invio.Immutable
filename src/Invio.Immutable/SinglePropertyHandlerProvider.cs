@@ -8,7 +8,7 @@ namespace Invio.Immutable {
     ///   <see cref="SinglePropertyHandler" /> if the <see cref="PropertyInfo" /> provided has a
     ///   <see cref="PropertyInfo.PropertyType" /> of type <see cref="Single" />.
     /// </summary>
-    public class SinglePropertyHandlerProvider : PropertyHandlerProviderBase {
+    public class SinglePropertyHandlerProvider : PropertyHandlerProviderBase<Single> {
         /// <summary>
         ///   Checks to see if the <see cref="PropertyInfo" /> has a
         ///   <see cref="PropertyInfo.PropertyType" /> of type <see cref="Single" /> to determine
@@ -17,7 +17,7 @@ namespace Invio.Immutable {
         /// </summary>
         /// <inheritdoc />
         protected override bool IsSupportedImpl(PropertyInfo property) {
-            return base.IsSupportedImpl(property) && property.PropertyType == typeof(Single) &&
+            return base.IsSupportedImpl(property) &&
                 (TryGetAttribute(property, out _) ||
                     TryGetAttribute(property.ReflectedType.GetTypeInfo(), out _));
         }
